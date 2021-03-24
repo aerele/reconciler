@@ -1,0 +1,18 @@
+include MANIFEST.in
+include requirements.txt
+include *.json
+include *.md
+include *.py
+include *.txt
+recursive-include reconciler *.css
+recursive-include reconciler *.csv
+recursive-include reconciler *.html
+recursive-include reconciler *.ico
+recursive-include reconciler *.js
+recursive-include reconciler *.json
+recursive-include reconciler *.md
+recursive-include reconciler *.png
+recursive-include reconciler *.py
+recursive-include reconciler *.svg
+recursive-include reconciler *.txt
+recursive-exclude reconciler *.pyc
