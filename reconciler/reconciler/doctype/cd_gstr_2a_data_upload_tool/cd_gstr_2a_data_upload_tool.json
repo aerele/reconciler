@@ -1,0 +1,133 @@
+{
+ "actions": [],
+ "autoname": "format:GSTR2A Upload on {creation}",
+ "creation": "2021-03-25 11:26:46.398378",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "cf_company",
+  "cf_upload_gstr_2a_data",
+  "column_break_3",
+  "cf_gst_state",
+  "cf_company_gstin",
+  "section_break_6",
+  "cf_total_gstr_2a_entries",
+  "cf_taxable_amount",
+  "cf_tax_amount"
+ ],
+ "fields": [
+  {
+   "fieldname": "cf_company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "cf_company_gstin",
+   "fieldtype": "Data",
+   "label": "Company GSTIN",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cf_upload_gstr_2a_data",
+   "fieldtype": "Attach",
+   "label": "Upload GSTR 2A Data",
+   "reqd": 1
+  },
+  {
+   "fieldname": "cf_gst_state",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "GST State",
+   "options": "\nAndaman and Nicobar Islands\nAndhra Pradesh\nArunachal Pradesh\nAssam\nBihar\nChandigarh\nChhattisgarh\nDadra and Nagar Haveli and Daman and Diu\nDelhi\nGoa\nGujarat\nHaryana\nHimachal Pradesh\nJammu and Kashmir\nJharkhand\nKarnataka\nKerala\nLadakh\nLakshadweep Islands\nMadhya Pradesh\nMaharashtra\nManipur\nMeghalaya\nMizoram\nNagaland\nOdisha\nOther Territory\nPondicherry\nPunjab\nRajasthan\nSikkim\nTamil Nadu\nTelangana\nTripura\nUttar Pradesh\nUttarakhand\nWest Bengal",
+   "reqd": 1
+  },
+  {
+   "fieldname": "cf_total_gstr_2a_entries",
+   "fieldtype": "Data",
+   "label": "Total GSTR 2A Entries",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_6",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "cf_taxable_amount",
+   "fieldtype": "Data",
+   "label": "Taxable Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cf_tax_amount",
+   "fieldtype": "Data",
+   "label": "Tax Amount",
+   "read_only": 1
+  }
+ ],
+ "hide_toolbar": 1,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2021-03-27 14:43:20.395079",
+ "modified_by": "Administrator",
+ "module": "Reconciler",
+ "name": "CD GSTR 2A Data Upload Tool",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts User",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Auditor",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}

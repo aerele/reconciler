@@ -1,0 +1,306 @@
+{
+ "actions": [],
+ "autoname": "format:GSTR2A-{YY}-{MM}-{####}",
+ "creation": "2021-03-25 11:29:21.676106",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "cf_company",
+  "cf_financial_period",
+  "column_break_3",
+  "cf_gst_state",
+  "cf_company_gstin",
+  "party_details_section",
+  "cf_party_gstin",
+  "cf_cancellation_date",
+  "cf_gstr3b_filing_status",
+  "column_break_10",
+  "cf_gstr15_filing_status",
+  "cf_gstr15_filing_date",
+  "cf_gstr15_filing_period",
+  "cf_invoice_details_section",
+  "cf_invoice_number",
+  "cf_invoice_date",
+  "cf_invoice_type",
+  "column_break_8",
+  "cf_reverse_charge",
+  "cf_place_of_supply",
+  "cf_invoice_amount",
+  "section_break_21",
+  "cf_gstr_2a_invoice_item_details",
+  "tax_details_section",
+  "cf_tax_rate",
+  "cf_taxable_amount",
+  "cf_tax_amount",
+  "column_break_14",
+  "cf_igst_amount",
+  "cf_cgst_amount",
+  "cf_sgst_amount",
+  "cf_cess_amount",
+  "section_break_16",
+  "cf_purchase_invoice",
+  "cf_match_status",
+  "cf_reason",
+  "column_break_22",
+  "cf_uploaded_via",
+  "cf_other_fields",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "column_break_8",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "tax_details_section",
+   "fieldtype": "Section Break",
+   "label": "Tax Details"
+  },
+  {
+   "fieldname": "column_break_14",
+   "fieldtype": "Column Break"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_16",
+   "fieldtype": "Section Break",
+   "label": "More Information"
+  },
+  {
+   "fieldname": "cf_company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company"
+  },
+  {
+   "fieldname": "cf_company_gstin",
+   "fieldtype": "Data",
+   "label": "Company GSTIN"
+  },
+  {
+   "fieldname": "cf_invoice_details_section",
+   "fieldtype": "Section Break",
+   "label": "Invoice Details"
+  },
+  {
+   "fieldname": "cf_invoice_number",
+   "fieldtype": "Data",
+   "label": "Invoice Number"
+  },
+  {
+   "fieldname": "cf_invoice_date",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Invoice Date"
+  },
+  {
+   "fieldname": "cf_tax_rate",
+   "fieldtype": "Data",
+   "label": "Tax Rate"
+  },
+  {
+   "fieldname": "cf_purchase_invoice",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Purchase Invoice",
+   "options": "Purchase Invoice"
+  },
+  {
+   "fieldname": "cf_match_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Match Status",
+   "options": "\nExact Match\nSuggested\nMissing in PI\nMismatched"
+  },
+  {
+   "fieldname": "cf_reason",
+   "fieldtype": "Data",
+   "label": "Reason"
+  },
+  {
+   "fieldname": "cf_gst_state",
+   "fieldtype": "Data",
+   "label": "GST State"
+  },
+  {
+   "fieldname": "cf_uploaded_via",
+   "fieldtype": "Data",
+   "label": "Uploaded Via"
+  },
+  {
+   "fieldname": "column_break_22",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cf_other_fields",
+   "fieldtype": "Code",
+   "label": "Other Fields"
+  },
+  {
+   "fieldname": "cf_invoice_type",
+   "fieldtype": "Data",
+   "label": "Invoice Type"
+  },
+  {
+   "fieldname": "cf_reverse_charge",
+   "fieldtype": "Data",
+   "label": "Reverse Charge"
+  },
+  {
+   "fieldname": "party_details_section",
+   "fieldtype": "Section Break",
+   "label": "Party Details"
+  },
+  {
+   "fieldname": "cf_party_gstin",
+   "fieldtype": "Data",
+   "label": "Party GSTIN"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cf_financial_period",
+   "fieldtype": "Data",
+   "label": "Financial Period"
+  },
+  {
+   "fieldname": "column_break_10",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cf_cancellation_date",
+   "fieldtype": "Data",
+   "label": "Cancellation Date"
+  },
+  {
+   "fieldname": "cf_gstr3b_filing_status",
+   "fieldtype": "Data",
+   "label": "GSTR3B Filing Status"
+  },
+  {
+   "fieldname": "cf_gstr15_filing_status",
+   "fieldtype": "Data",
+   "label": "GSTR1/5 Filing Status"
+  },
+  {
+   "fieldname": "cf_gstr15_filing_date",
+   "fieldtype": "Data",
+   "label": "GSTR1/5 Filing Date"
+  },
+  {
+   "fieldname": "cf_gstr15_filing_period",
+   "fieldtype": "Data",
+   "label": "GSTR1/5 Filing Period"
+  },
+  {
+   "fieldname": "cf_igst_amount",
+   "fieldtype": "Data",
+   "label": "IGST Amount"
+  },
+  {
+   "fieldname": "cf_cgst_amount",
+   "fieldtype": "Data",
+   "label": "CGST Amount"
+  },
+  {
+   "fieldname": "cf_sgst_amount",
+   "fieldtype": "Data",
+   "label": "SGST Amount"
+  },
+  {
+   "fieldname": "section_break_21",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "cf_place_of_supply",
+   "fieldtype": "Data",
+   "label": "Place of Supply"
+  },
+  {
+   "fieldname": "cf_invoice_amount",
+   "fieldtype": "Data",
+   "label": "Invoice Amount"
+  },
+  {
+   "fieldname": "cf_gstr_2a_invoice_item_details",
+   "fieldtype": "Table",
+   "label": "GSTR 2A Invoice Item Details",
+   "options": "CD GSTR 2A Invoice Item Details"
+  },
+  {
+   "fieldname": "cf_taxable_amount",
+   "fieldtype": "Data",
+   "label": "Taxable Amount"
+  },
+  {
+   "fieldname": "cf_cess_amount",
+   "fieldtype": "Data",
+   "label": "Cess Amount"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "CD GSTR 2A Entry",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "cf_tax_amount",
+   "fieldtype": "Data",
+   "label": "Tax Amount"
+  }
+ ],
+ "hide_toolbar": 1,
+ "in_create": 1,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2021-03-27 17:26:21.575697",
+ "modified_by": "Administrator",
+ "module": "Reconciler",
+ "name": "CD GSTR 2A Entry",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts User",
+   "share": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts Manager",
+   "share": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Auditor",
+   "share": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}
