@@ -145,7 +145,7 @@ def create_gstr2a_entries(json_data, doc):
 						if key1 == 'itms':
 							new_doc, tax_details = update_inv_items(inv, new_doc, invoice_item_field_mappings)
 							for tax_key in invoice_item_field_mappings:
-								if not tax_key == 'rt':
+								if not tax_key in ['rt', 'txval']:
 									inv_tax_amt += tax_details[tax_key]
 								setattr(new_doc, invoice_item_field_mappings[tax_key], tax_details[tax_key])
 					setattr(new_doc, 'cf_uploaded_via', doc.name)
