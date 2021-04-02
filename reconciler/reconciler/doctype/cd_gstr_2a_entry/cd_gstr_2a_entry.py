@@ -6,7 +6,6 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from erpnext.regional.india.utils import get_gst_accounts
-from datetime import datetime
 
 class CDGSTR2AEntry(Document):
 	def after_insert(self):
@@ -33,7 +32,7 @@ class CDGSTR2AEntry(Document):
 		}
 		data = {'supplier_gstin': self.cf_party_gstin,
 			'company_gstin': self.cf_company_gstin,
-			'bill_date': datetime.strptime(self.cf_invoice_date , "%d-%m-%Y").date(),
+			'bill_date': self.cf_invoice_date,
 			'bill_no': self.cf_invoice_number,
 			'total': self.cf_taxable_amount, 
 			'taxes_and_charges_added': self.cf_tax_amount, 
@@ -80,7 +79,7 @@ class CDGSTR2AEntry(Document):
 		}
 		data = {'supplier_gstin': self.cf_party_gstin,
 			'company_gstin': self.cf_company_gstin,
-			'bill_date': datetime.strptime(self.cf_invoice_date , "%d-%m-%Y").date(),
+			'bill_date': self.cf_invoice_date,
 			'docstatus': 1,
 			'place_of_supply': self.cf_place_of_supply,
 			'reverse_charge': self.cf_reverse_charge,

@@ -90,7 +90,7 @@
   },
   {
    "fieldname": "cf_invoice_date",
-   "fieldtype": "Data",
+   "fieldtype": "Date",
    "in_list_view": 1,
    "label": "Invoice Date"
   },
@@ -258,7 +258,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2021-04-02 11:59:44.501859",
+ "modified": "2021-04-03 00:34:12.893944",
  "modified_by": "Administrator",
  "module": "Reconciler",
  "name": "CD GSTR 2A Entry",
