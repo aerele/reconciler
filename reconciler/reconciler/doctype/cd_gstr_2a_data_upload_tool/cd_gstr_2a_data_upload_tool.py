@@ -149,7 +149,7 @@ def create_gstr2a_entries(json_data, doc):
 									inv_tax_amt += tax_details[tax_key]
 								setattr(new_doc, invoice_item_field_mappings[tax_key], tax_details[tax_key])
 					setattr(new_doc, 'cf_uploaded_via', doc.name)
-					setattr(new_doc, 'cf_other_fields', str(json_data))
+					setattr(new_doc, 'cf_other_fields', str(row))
 					setattr(new_doc, 'cf_tax_amount', inv_tax_amt)
 					if not frappe.db.exists("CD GSTR 2A Entry", data):
 						total_entries += 1
