@@ -96,7 +96,7 @@
   },
   {
    "fieldname": "cf_tax_rate",
-   "fieldtype": "Data",
+   "fieldtype": "Currency",
    "label": "Tax Rate"
   },
   {
@@ -108,10 +108,8 @@
   },
   {
    "fieldname": "cf_match_status",
-   "fieldtype": "Select",
-   "in_list_view": 1,
-   "label": "Match Status",
-   "options": "\nExact Match\nSuggested\nMissing in PI\nMismatched"
+   "fieldtype": "Data",
+   "label": "Match Status"
   },
   {
    "fieldname": "cf_reason",
@@ -197,17 +195,17 @@
   },
   {
    "fieldname": "cf_igst_amount",
-   "fieldtype": "Data",
+   "fieldtype": "Currency",
    "label": "IGST Amount"
   },
   {
    "fieldname": "cf_cgst_amount",
-   "fieldtype": "Data",
+   "fieldtype": "Currency",
    "label": "CGST Amount"
   },
   {
    "fieldname": "cf_sgst_amount",
-   "fieldtype": "Data",
+   "fieldtype": "Currency",
    "label": "SGST Amount"
   },
   {
@@ -221,7 +219,7 @@
   },
   {
    "fieldname": "cf_invoice_amount",
-   "fieldtype": "Data",
+   "fieldtype": "Currency",
    "label": "Invoice Amount"
   },
   {
@@ -232,12 +230,12 @@
   },
   {
    "fieldname": "cf_taxable_amount",
-   "fieldtype": "Data",
+   "fieldtype": "Currency",
    "label": "Taxable Amount"
   },
   {
    "fieldname": "cf_cess_amount",
-   "fieldtype": "Data",
+   "fieldtype": "Currency",
    "label": "Cess Amount"
   },
   {
@@ -251,7 +249,7 @@
   },
   {
    "fieldname": "cf_tax_amount",
-   "fieldtype": "Data",
+   "fieldtype": "Currency",
    "label": "Tax Amount"
   }
  ],
@@ -260,7 +258,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2021-03-27 17:26:21.575697",
+ "modified": "2021-04-02 11:59:44.501859",
  "modified_by": "Administrator",
  "module": "Reconciler",
  "name": "CD GSTR 2A Entry",
