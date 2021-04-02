@@ -8,6 +8,7 @@ from frappe import  _
 from frappe.model.document import Document
 from frappe.core.page.background_jobs.background_jobs import get_info
 from frappe.utils.background_jobs import enqueue
+from datetime import datetime
 
 class CDGSTR2ADataUploadTool(Document):
 	def validate(self):
@@ -135,12 +136,17 @@ def create_gstr2a_entries(json_data, doc):
 					for key1 in list(inv.keys()):
 						if key1 in invoice_field_mappings:
 							setattr(new_doc, invoice_field_mappings[key1], inv[key1])
+							if key1 == 'idt':
+								setattr(new_doc, invoice_field_mappings[key1], datetime.strptime(inv[key1] , "%d-%m-%Y").date())
 							if key1 == 'inv_typ':
 								setattr(new_doc, invoice_field_mappings[key1], inv_typ[inv[key1]])
 							if key1 == 'pos':
 								setattr(new_doc, invoice_field_mappings[key1], inv[key1]+'-'+state_numbers[inv[key1]])
 							if key1 in check_existing:
-								data[check_existing[key1]] = inv[key1]
+								if key1 == 'idt':
+									data[check_existing[key1]] =  datetime.strptime(inv[key1] , "%d-%m-%Y").date()
+								else:
+									data[check_existing[key1]] = inv[key1]
 							del inv[key1]
 						if key1 == 'itms':
 							new_doc, tax_details = update_inv_items(inv, new_doc, invoice_item_field_mappings)
