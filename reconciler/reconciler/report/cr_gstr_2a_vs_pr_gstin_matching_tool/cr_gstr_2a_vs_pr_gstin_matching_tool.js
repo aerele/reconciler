@@ -113,6 +113,13 @@ frappe.query_reports["CR GSTR 2A vs PR GSTIN Matching Tool"] = {
 			fieldtype: "Link",
 			options: 'Supplier',
 			depends_on:  "eval:doc.cf_view_type == 'Document View'"
+		},
+		{
+			fieldname: "cf_match_status",
+			label: __("Match Status"),
+			fieldtype: "Select",
+			options: ["Exact Match", "Suggested", "Mismatch", "Missing in PR", "Missing in 2A"],
+			depends_on:  "eval:doc.cf_view_type == 'Document View'"
 		}
 	],
 	after_datatable_render: function(datatable_obj) {
@@ -124,13 +131,12 @@ frappe.query_reports["CR GSTR 2A vs PR GSTIN Matching Tool"] = {
 		});
 	},
 	onload: function(query_report) {
+	query_report.page.clear_menu();
 	query_report.page.add_action_item(__("✔️ Accept system values"), () => {
 	})
 	query_report.page.add_action_item(__("✔️ Accept gstr2a values"), () => {
 	})
 	query_report.page.add_action_item(__("⌛Pending"), () => {
-	})
-	query_report.page.add_inner_button(__("Start Matching"), () => {
 	})
 }
 }
