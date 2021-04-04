@@ -6,7 +6,7 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "status",
+  "cf_status",
   "cf_company",
   "cf_financial_period",
   "column_break_3",
@@ -14,6 +14,7 @@
   "cf_company_gstin",
   "party_details_section",
   "cf_party_gstin",
+  "cf_party",
   "cf_cancellation_date",
   "cf_gstr3b_filing_status",
   "column_break_10",
@@ -255,10 +256,15 @@
   },
   {
    "allow_on_submit": 1,
-   "fieldname": "status",
+   "fieldname": "cf_status",
    "fieldtype": "Data",
    "label": "Status",
    "read_only": 1
+  },
+  {
+   "fieldname": "cf_party",
+   "fieldtype": "Data",
+   "label": "Party"
   }
  ],
  "hide_toolbar": 1,
@@ -266,7 +272,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2021-04-03 00:50:44.505657",
+ "modified": "2021-04-05 01:37:49.394404",
  "modified_by": "Administrator",
  "module": "Reconciler",
  "name": "CD GSTR 2A Entry",
