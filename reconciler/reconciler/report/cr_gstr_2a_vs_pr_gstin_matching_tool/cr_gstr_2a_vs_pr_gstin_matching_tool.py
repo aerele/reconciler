@@ -241,6 +241,7 @@ def get_selection_details(gstr2a, purchase_inv):
 	tax_details = {}
 	other_details = {}
 	gstr2a_doc = None
+	pi_doc = None
 	account_head_fields = {
 			'igst_account',
 			'cgst_account',
@@ -249,14 +250,15 @@ def get_selection_details(gstr2a, purchase_inv):
 		}
 	if gstr2a:
 		gstr2a_doc = frappe.get_doc('CD GSTR 2A Entry', gstr2a)
-	pi_doc = frappe.get_doc('Purchase Invoice', purchase_inv)
-	gst_accounts = get_gst_accounts(pi_doc.company)
-	for row in pi_doc.taxes:
-		for accounts in gst_accounts.values():
-			if row.account_head in accounts:
-				if not type(accounts[-1]) == int:
-					accounts.append(0)
-				accounts[-1]+=row.tax_amount
+	if not purchase_inv == 'None':
+		pi_doc = frappe.get_doc('Purchase Invoice', purchase_inv)
+		gst_accounts = get_gst_accounts(pi_doc.company)
+		for row in pi_doc.taxes:
+			for accounts in gst_accounts.values():
+				if row.account_head in accounts:
+					if not type(accounts[-1]) == int:
+						accounts.append(0)
+					accounts[-1]+=row.tax_amount
 	
 	if gstr2a_doc:
 		tax_details['GSTR-2A'] = [gstr2a_doc.cf_taxable_amount,
@@ -271,19 +273,20 @@ def get_selection_details(gstr2a, purchase_inv):
 							gstr2a_doc.cf_place_of_supply,
 							gstr2a_doc.cf_reverse_charge]
 
-	pi_details = [pi_doc.total,
-					pi_doc.taxes_and_charges_added]
-	for acc in account_head_fields:
-		tax_amt = 0
-		if len(gst_accounts[acc])==3:
-			tax_amt = gst_accounts[acc][-1]
-		pi_details.append(tax_amt)
-	tax_details['PR'] = pi_details
+	if pi_doc:
+		pi_details = [pi_doc.total,
+						pi_doc.taxes_and_charges_added]
+		for acc in account_head_fields:
+			tax_amt = 0
+			if len(gst_accounts[acc])==3:
+				tax_amt = gst_accounts[acc][-1]
+			pi_details.append(tax_amt)
+		tax_details['PR'] = pi_details
 
-	other_details['PR'] = [pi_doc.bill_no,
-						pi_doc.bill_date,
-						pi_doc.place_of_supply,
-						pi_doc.reverse_charge]
+		other_details['PR'] = [pi_doc.bill_no,
+							pi_doc.bill_date,
+							pi_doc.place_of_supply,
+							pi_doc.reverse_charge]
 	return [tax_details, other_details]
 
 @frappe.whitelist()
