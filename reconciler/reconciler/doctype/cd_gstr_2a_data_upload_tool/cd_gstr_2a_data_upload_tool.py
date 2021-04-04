@@ -127,6 +127,8 @@ def create_gstr2a_entries(json_data, doc):
 		for key in list(row.keys()):
 			if key in party_based_field_mappings:
 				data[party_based_field_mappings[key]] = row[key]
+				if key == 'ctin':
+					data['cf_party'] = get_supplier_by_gstin(row[key])
 				del row[key]
 			if key == 'inv':
 				for inv in row['inv']:
@@ -203,3 +205,19 @@ def get_gstin_for_company(company, gst_state):
 		return company_gstin[0][0]
 	else:
 		frappe.throw(_(f'Company GSTIN not found for the selected state.'))
+
+def get_supplier_by_gstin(gstin):
+	supplier = None
+	link_name = frappe.db.sql("""select
+		`tabDynamic Link`.link_name
+	from
+		`tabAddress`, `tabDynamic Link`
+	where 
+		`tabAddress`.gstin = %(gstin)s and 
+		`tabDynamic Link`.parent = `tabAddress`.name and
+		`tabDynamic Link`.parenttype = 'Address' and
+		`tabDynamic Link`.link_doctype = 'Supplier'""", {"gstin": gstin})
+	
+	if link_name and link_name[0][0]:
+		supplier = link_name[0][0]
+	return supplier
