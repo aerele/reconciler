@@ -1,0 +1,32 @@
+{
+ "actions": [],
+ "creation": "2021-04-05 12:11:19.655349",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "gstr_2a_entry"
+ ],
+ "fields": [
+  {
+   "fieldname": "gstr_2a_entry",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "GSTR 2A Entry",
+   "options": "CD GSTR 2A Entry"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2021-04-05 12:11:31.272789",
+ "modified_by": "Administrator",
+ "module": "Reconciler",
+ "name": "CD GSTR 2A Duplicate Records",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
