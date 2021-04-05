@@ -291,7 +291,6 @@ def get_selection_details(gstr2a, purchase_inv):
 def update_status(data, status):
 	if isinstance(data, string_types):
 		data = json.loads(data)
-	data.append({'gstr_2a': 'GSTR2A-21-04-0251'})
 	for row in data:
 		if row:
 			frappe.db.set_value('CD GSTR 2A Entry', row['gstr_2a'], 'cf_status', status)
