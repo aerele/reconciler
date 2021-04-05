@@ -12,9 +12,11 @@
   "cf_gst_state",
   "cf_company_gstin",
   "section_break_6",
-  "cf_total_gstr_2a_entries",
-  "cf_taxable_amount",
-  "cf_tax_amount"
+  "cf_no_of_gstr_2a_entries_by_system",
+  "cf_no_of_gstr_2a_entries_by_json",
+  "column_break_9",
+  "cf_no_of_duplicate_entries",
+  "cf_gstr_2a_duplicate_records"
  ],
  "fields": [
   {
@@ -50,32 +52,44 @@
    "reqd": 1
   },
   {
-   "fieldname": "cf_total_gstr_2a_entries",
-   "fieldtype": "Data",
-   "label": "Total GSTR 2A Entries",
-   "read_only": 1
-  },
-  {
+   "depends_on": "eval: !doc.__islocal",
    "fieldname": "section_break_6",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "File Summary"
   },
   {
-   "fieldname": "cf_taxable_amount",
-   "fieldtype": "Data",
-   "label": "Taxable Amount",
+   "fieldname": "cf_no_of_gstr_2a_entries_by_json",
+   "fieldtype": "Int",
+   "label": "No of GSTR 2A Entries by Json",
    "read_only": 1
   },
   {
-   "fieldname": "cf_tax_amount",
-   "fieldtype": "Data",
-   "label": "Tax Amount",
+   "fieldname": "cf_no_of_duplicate_entries",
+   "fieldtype": "Int",
+   "label": "No of Duplicate Entries",
    "read_only": 1
+  },
+  {
+   "fieldname": "cf_gstr_2a_duplicate_records",
+   "fieldtype": "Table",
+   "label": "GSTR 2A Duplicate Records",
+   "options": "CD GSTR 2A Duplicate Records",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_9",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cf_no_of_gstr_2a_entries_by_system",
+   "fieldtype": "Read Only",
+   "label": "No of GSTR 2A Entries by System"
   }
  ],
  "hide_toolbar": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-03-27 14:43:20.395079",
+ "modified": "2021-04-05 14:13:08.779334",
  "modified_by": "Administrator",
  "module": "Reconciler",
  "name": "CD GSTR 2A Data Upload Tool",
