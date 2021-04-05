@@ -95,12 +95,14 @@ class MatchingTool(object):
 			if self.filters['cf_view_type'] == 'Supplier View':
 				gstr2a_entries = frappe.db.get_all('CD GSTR 2A Entry', filters=[
 				['cf_status' ,'in', status],
+				['docstatus' ,'=', 1],
 				['cf_invoice_date' ,'>=',self.filters['cf_from_date']],
 				['cf_invoice_date' ,'<=',self.filters['cf_to_date']],
 				['cf_company_gstin', '=', self.filters['cf_company_gstin']]], fields =['cf_party_gstin','cf_tax_amount', 'cf_party'])
 				
 				pi_entries = frappe.db.get_all('Purchase Invoice', filters=[['bill_date' ,'>=',self.filters['cf_from_date']],
 				['bill_date' ,'<=',self.filters['cf_to_date']],
+				['docstatus' ,'=', 1],
 				['company_gstin', '=', self.filters['cf_company_gstin']]], fields =['supplier_gstin','taxes_and_charges_added', 'supplier'])
 
 				supplier_data_by_2a = {}
@@ -130,6 +132,7 @@ class MatchingTool(object):
 				
 				gstr2a_entries = frappe.db.get_all('CD GSTR 2A Entry', filters=[['cf_invoice_date' ,'>=',self.filters['cf_from_date']],
 				['cf_status' ,'in', status],
+				['docstatus' ,'=', 1],
 				['cf_party', '=', self.filters['cf_supplier']],
 				['cf_invoice_date' ,'<=',self.filters['cf_to_date']],
 				['cf_match_status','in', match_status],
@@ -153,6 +156,7 @@ class MatchingTool(object):
 				if 'Missing in 2A' in match_status:
 					pi_entries = frappe.db.get_all('Purchase Invoice', filters=[['bill_date' ,'>=',self.filters['cf_from_date']],
 					['bill_date' ,'<=',self.filters['cf_to_date']],
+					['docstatus' ,'=', 1],
 					['supplier' ,'=',self.filters['cf_supplier']],
 					['company_gstin', '=', self.filters['cf_company_gstin']]], fields =['name', 'supplier_gstin', 'bill_no'])
 
@@ -173,9 +177,11 @@ class MatchingTool(object):
 		summary = []
 		gstr2a_conditions = [['cf_invoice_date' ,'>=',self.filters['cf_from_date']],
 			['cf_invoice_date' ,'<=',self.filters['cf_to_date']],
+			['docstatus' ,'=', 1],
 			['cf_company_gstin', '=', self.filters['cf_company_gstin']]]
 		pr_conditions = [['bill_date' ,'>=',self.filters['cf_from_date']],
 			['bill_date' ,'<=',self.filters['cf_to_date']],
+			['docstatus' ,'=', 1],
 			['company_gstin', '=', self.filters['cf_company_gstin']]]
 		if 'cf_supplier' in self.filters:
 			pr_conditions.append(['supplier' ,'=',self.filters['cf_supplier']])
@@ -196,18 +202,10 @@ class MatchingTool(object):
 			)
 		summary.append(
 				{
-				"value": len(entries),
+				"value": f'{len(entries)}(2A) - {len(pr_entries)}(PR)',
 				"indicator": 'Green',
-				"label": 'Total GSTR 2A Docs',
-				"datatype": "Float",
-			},
-			)
-		summary.append(
-				{
-				"value": len(pr_entries),
-				"indicator": 'Green',
-				"label": 'Total PR Docs',
-				"datatype": "Float",
+				"label": 'Total Docs',
+				"datatype": "Data",
 			},
 			)
 		summary.append(
