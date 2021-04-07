@@ -86,10 +86,9 @@
    "label": "No of GSTR 2A Entries by System"
   }
  ],
- "hide_toolbar": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-04-05 14:13:08.779334",
+ "modified": "2021-04-07 11:55:57.781764",
  "modified_by": "Administrator",
  "module": "Reconciler",
  "name": "CD GSTR 2A Data Upload Tool",
@@ -143,5 +142,6 @@
   }
  ],
  "sort_field": "modified",
- "sort_order": "DESC"
+ "sort_order": "DESC",
+ "track_changes": 1
 }
