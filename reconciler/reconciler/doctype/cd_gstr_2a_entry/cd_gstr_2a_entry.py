@@ -6,21 +6,11 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from erpnext.regional.india.utils import get_gst_accounts
+from reconciler.reconciler.doctype.cd_gstr_2a_data_upload_tool.cd_gstr_2a_data_upload_tool import get_supplier_by_gstin
 
 class CDGSTR2AEntry(Document):
 	def after_insert(self):
-		matched_inv = self.check_for_exact_match()
-		if matched_inv:
-			self.cf_purchase_invoice = matched_inv
-			self.cf_match_status = 'Exact Match'
-		else:
-			suggested_inv, status, reason = self.suggest_invoice()
-			if suggested_inv:
-				self.cf_purchase_invoice = suggested_inv
-				self.cf_match_status = status
-				self.cf_reason = ','.join(reason)
-			else:
-				self.cf_match_status = 'Missing in PR'
+		update_entry(self.name)
 
 	def check_for_exact_match(self):
 		is_tax_amt_same = True
@@ -32,11 +22,11 @@ class CDGSTR2AEntry(Document):
 		}
 		data = {'supplier_gstin': self.cf_party_gstin,
 			'company_gstin': self.cf_company_gstin,
-			'bill_date': self.cf_invoice_date,
-			'bill_no': self.cf_invoice_number,
+			'bill_date': self.cf_document_date,
+			'bill_no': self.cf_document_number,
 			'total': self.cf_taxable_amount, 
 			'taxes_and_charges_added': self.cf_tax_amount, 
-			'grand_total': self.cf_invoice_amount,
+			'grand_total': self.cf_total_amount,
 			'place_of_supply': self.cf_place_of_supply,
 			'gst_category': self.cf_invoice_type,
 			'reverse_charge': self.cf_reverse_charge,
@@ -75,11 +65,11 @@ class CDGSTR2AEntry(Document):
 		amount_fields = {
 			'total': 'cf_taxable_amount' , 
 			'taxes_and_charges_added':  'cf_tax_amount', 
-			'grand_total':  'cf_invoice_amount'
+			'grand_total':  'cf_total_amount'
 		}
 		data = {'supplier_gstin': self.cf_party_gstin,
 			'company_gstin': self.cf_company_gstin,
-			'bill_date': self.cf_invoice_date,
+			'bill_date': self.cf_document_date,
 			'docstatus': 1,
 			'place_of_supply': self.cf_place_of_supply,
 			'reverse_charge': self.cf_reverse_charge,
@@ -90,7 +80,7 @@ class CDGSTR2AEntry(Document):
 		for inv in inv_list:
 			suggested_inv = inv['name']
 			doc = frappe.get_doc('Purchase Invoice', inv['name'])
-			if not doc.bill_no == self.cf_invoice_number:
+			if not doc.bill_no == self.cf_document_number:
 				reason.append('Invoice Number')
 			for field in amount_fields:
 				if abs(getattr(self, amount_fields[field]) - getattr(doc, field)) > 1:
@@ -115,3 +105,24 @@ class CDGSTR2AEntry(Document):
 			if reason:
 				break
 		return suggested_inv, status, reason
+
+@frappe.whitelist()
+def update_entry(doc_name):
+	doc = frappe.get_doc('CD GSTR 2A Entry', doc_name)
+	doc.cf_party = get_supplier_by_gstin(doc.cf_party_gstin)
+	if doc.cf_transaction_type == 'Invoice':
+		matched_inv = doc.check_for_exact_match()
+		if matched_inv:
+			doc.cf_purchase_invoice = matched_inv
+			doc.cf_match_status = 'Exact Match'
+		else:
+			suggested_inv, status, reason = doc.suggest_invoice()
+			if suggested_inv:
+				doc.cf_purchase_invoice = suggested_inv
+				doc.cf_match_status = status
+				doc.cf_reason = ','.join(reason)
+			else:
+				doc.cf_match_status = 'Missing in PR'
+	else:
+		doc.cf_match_status = 'Missing in PR'
+	doc.save()
