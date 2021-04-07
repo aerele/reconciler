@@ -319,7 +319,7 @@
   },
   {
    "fieldname": "cf_against_invoice_date",
-   "fieldtype": "Data",
+   "fieldtype": "Date",
    "label": "Against Invoice Date",
    "read_only": 1
   },
@@ -339,7 +339,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-04-07 13:13:36.336171",
+ "modified": "2021-04-08 00:20:50.638928",
  "modified_by": "Administrator",
  "module": "Reconciler",
  "name": "CD GSTR 2A Entry",
