@@ -202,7 +202,7 @@ class MatchingTool(object):
 			)
 		summary.append(
 				{
-				"value": f'{len(entries)}(2A) - {len(pr_entries)}(PR)',
+				"value": f'{len(entries)}(2A) & {len(pr_entries)}(PR)',
 				"indicator": 'Green',
 				"label": 'Total Docs',
 				"datatype": "Data",
