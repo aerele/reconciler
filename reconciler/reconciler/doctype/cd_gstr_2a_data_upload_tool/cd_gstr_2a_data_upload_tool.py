@@ -9,6 +9,7 @@ from frappe.model.document import Document
 from frappe.core.page.background_jobs.background_jobs import get_info
 from frappe.utils.background_jobs import enqueue
 from datetime import datetime
+from erpnext.accounts.utils import get_fiscal_year
 
 class CDGSTR2ADataUploadTool(Document):
 	def validate(self):
@@ -38,11 +39,58 @@ class CDGSTR2ADataUploadTool(Document):
 			)
 
 def create_gstr2a_entries(json_data, doc):
-	total_entries = 0
-	total_entries_by_json = 0
-	#Define mapping for json and gstr2a entry fields
-	company_field_mappings = {'gstin': 'cf_company_gstin', 'fp': 'cf_financial_period'}
-	
+	total_entries_created = 0
+	data = {'doctype' :'CD GSTR 2A Entry',
+		'cf_company': doc.cf_company,
+		'cf_gst_state': doc.cf_gst_state}
+
+	try:
+		doc.cf_no_of_entries_in_json = 0
+		data['cf_company_gstin']  = json_data['gstin']
+		del json_data['gstin']
+		data['cf_financial_period']  = json_data['fp']
+		del json_data['fp']
+		if 'b2b' in json_data:
+			transaction_based_mappings = {
+				'inum': 'cf_document_number',
+				'idt': 'cf_document_date'
+			}
+			amendment_type = {
+				'R': 'Receiver GSTIN Amended',
+				'N': 'Invoice Number Amended',
+				'D': 'Details Amended'
+			}
+			data['cf_transaction_type'] = 'Invoice'
+			doc, total_entries_created = update_transaction_details('inv', json_data['b2b'], transaction_based_mappings,\
+				 data, doc, total_entries_created, amendment_type)
+		if 'cdn' in json_data:
+			amendment_type = {
+				'R': 'Receiver GSTIN Amended',
+				'N': 'Note Number Amended',
+				'D': 'Details Amended'
+			}
+			transaction_based_mappings = { 
+				'inum': 'cf_against_invoice_number',
+				'idt': 'cf_against_invoice_date',
+				'ntty': 'cf_note_type',
+				"nt_num": 'cf_document_number',
+				"nt_dt": 'cf_document_date'
+				}
+			data['cf_transaction_type'] = 'CDN'
+			doc, total_entries_created = update_transaction_details('nt', json_data['cdn'], transaction_based_mappings,\
+				data, doc, total_entries_created, amendment_type)
+
+		doc.cf_no_of_updated_entries = len(doc.cf_gstr_2a_updated_records)
+		doc.save()
+		frappe.db.set_value('CD GSTR 2A Data Upload Tool',doc.name,'cf_no_of_newly_created_entries', f"""<a href="#List/CD GSTR 2A Entry/List?cf_uploaded_via={doc.name}">{total_entries_created}</a>""")
+		frappe.db.commit()
+	except:
+		traceback = frappe.get_traceback()
+		frappe.log_error(title = 'GSTR 2A Json Upload Error',message=traceback)		
+
+def update_transaction_details(txn_key, txn_details, mappings, data, uploaded_doc, total_entries_created, amendment_type):
+
+	# Define mapping for json and gstr2a entry fields
 	party_based_field_mappings = {
 		'ctin': 'cf_party_gstin',
 		'cfs': 'cf_gstr15_filing_status',
@@ -51,13 +99,14 @@ def create_gstr2a_entries(json_data, doc):
 		'fldtr1': 'cf_gstr15_filing_date',
 		'flprdr1': 'cf_gstr15_filing_period'}
 
-	invoice_field_mappings = { 'inum': 'cf_invoice_number',
-		'idt': 'cf_invoice_date',
-		'val': 'cf_invoice_amount', 
+	common_field_mappings = {
+		'val': 'cf_total_amount', 
 		'pos': 'cf_place_of_supply',
 		'rchrg': 'cf_reverse_charge',
-		'inv_typ':'cf_invoice_type'
-		}
+		'inv_typ':'cf_invoice_type',
+		'aspd': 'cf_amended_return_period',
+		'atyp': 'cf_amendment_type'
+	}
 
 	invoice_item_field_mappings = { "rt": 'cf_tax_rate',
 		"txval": 'cf_taxable_amount',
@@ -67,10 +116,18 @@ def create_gstr2a_entries(json_data, doc):
 		"csamt": 'cf_cess_amount'
 	}
 
-	inv_typ = {'R': 'Registered Regular',
-			'DE': 'Deemed Export',
-			'SEWP': 'SEZ Exports with payment',
-			'SEWOP': 'SEZ exports without payment'}
+	common_field_mappings.update(mappings)
+
+	# Define Expansions
+	note_type = {
+		"C":"Credit",
+		"D":"Debit"
+	}
+
+	inv_type = {'R': 'Registered Regular',
+		'DE': 'Deemed Export',
+		'SEWP': 'SEZ Exports with payment',
+		'SEWOP': 'SEZ exports without payment'}
 
 	state_numbers = {
 		"35": "Andaman and Nicobar Islands",
@@ -112,75 +169,74 @@ def create_gstr2a_entries(json_data, doc):
 		"19": "West Bengal"
 		}
 
-	data = {'doctype':'CD GSTR 2A Entry',
-		'cf_company': doc.cf_company,
-		'cf_gst_state': doc.cf_gst_state}
-
-	check_existing = {'inum': 'cf_invoice_number', 'idt': 'cf_invoice_date'}
-	try:
-		for key in company_field_mappings:
-			data[company_field_mappings[key]] = json_data[key]
-			del json_data[key]
-
-		for row in json_data['b2b']:
-			for key in list(row.keys()):
-				if key in party_based_field_mappings:
-					data[party_based_field_mappings[key]] = row[key]
-					if key == 'ctin':
-						data['cf_party'] = get_supplier_by_gstin(row[key])
-					del row[key]
-				if key == 'inv':
-					total_entries_by_json += len(row['inv'])
-					for inv in row['inv']:
-						new_doc = frappe.get_doc(data)
-						del data['doctype']
-						inv_tax_amt = 0
-						for key1 in list(inv.keys()):
-							if key1 in invoice_field_mappings:
-								setattr(new_doc, invoice_field_mappings[key1], inv[key1])
-								if key1 == 'idt':
-									setattr(new_doc, invoice_field_mappings[key1], datetime.strptime(inv[key1] , "%d-%m-%Y").date())
-								if key1 == 'inv_typ':
-									setattr(new_doc, invoice_field_mappings[key1], inv_typ[inv[key1]])
-								if key1 == 'pos':
-									setattr(new_doc, invoice_field_mappings[key1], inv[key1]+'-'+state_numbers[inv[key1]])
-								if key1 in check_existing:
-									if key1 == 'idt':
-										data[check_existing[key1]] =  datetime.strptime(inv[key1] , "%d-%m-%Y").date()
-									else:
-										data[check_existing[key1]] = inv[key1]
-								del inv[key1]
-							if key1 == 'itms':
-								new_doc, tax_details = update_inv_items(inv, new_doc, invoice_item_field_mappings)
-								for tax_key in invoice_item_field_mappings:
-									if not tax_key in ['rt', 'txval']:
-										inv_tax_amt += tax_details[tax_key]
-									setattr(new_doc, invoice_item_field_mappings[tax_key], tax_details[tax_key])
-						setattr(new_doc, 'cf_uploaded_via', doc.name)
-						setattr(new_doc, 'cf_other_fields', str(row))
-						setattr(new_doc, 'cf_tax_amount', inv_tax_amt)
-						if not data['cf_party']:
-							del data['cf_party']
-						existing_doc = frappe.db.get_value('CD GSTR 2A Entry', data, 'name')
-						if not existing_doc:
-							total_entries += 1
-							new_doc.save()
-							new_doc.submit()
-						else:
-							doc.append('cf_gstr_2a_duplicate_records',{
-								"gstr_2a_entry" : existing_doc
+	for row in txn_details:
+		for key in list(row.keys()):
+			if key in party_based_field_mappings:
+				data[party_based_field_mappings[key]] = row[key]
+				if key == 'ctin':
+					data['cf_party'] = get_supplier_by_gstin(row[key])
+				del row[key]
+			if key == txn_key:
+				uploaded_doc.cf_no_of_entries_in_json += len(row[txn_key])
+				for inv in row[txn_key]:
+					new_doc = frappe.get_doc(data)
+					inv_tax_amt = 0
+					for key1 in list(inv.keys()):
+						if key1 in common_field_mappings:
+							setattr(new_doc, common_field_mappings[key1], inv[key1])
+							if key1 in ['idt', 'nt_dt']:
+								setattr(new_doc, common_field_mappings[key1], datetime.strptime(inv[key1] , "%d-%m-%Y").date())
+							if key1 == 'inv_typ':
+								setattr(new_doc, common_field_mappings[key1], inv_type[inv[key1]])
+							if key1 == 'ntty':
+								setattr(new_doc, common_field_mappings[key1], note_type[inv[key1]])
+							if key1 == 'atyp':
+								setattr(new_doc, common_field_mappings[key1], amendment_type[inv[key1]])
+							if key1 == 'pos':
+								setattr(new_doc, common_field_mappings[key1], inv[key1]+'-'+state_numbers[inv[key1]])
+							del inv[key1]
+						if key1 == 'itms':
+							new_doc, tax_details = update_inv_items(inv, new_doc, invoice_item_field_mappings)
+							for tax_key in invoice_item_field_mappings:
+								if not tax_key in ['rt', 'txval']:
+									inv_tax_amt += tax_details[tax_key]
+								setattr(new_doc, invoice_item_field_mappings[tax_key], tax_details[tax_key])
+					setattr(new_doc, 'cf_uploaded_via', uploaded_doc.name)
+					setattr(new_doc, 'cf_other_fields', str(row))
+					setattr(new_doc, 'cf_tax_amount', inv_tax_amt)
+					fiscal_year = get_fiscal_year(new_doc.cf_document_date)[0]
+					setattr(new_doc, 'cf_fiscal_year', fiscal_year)
+					compare_fields = {
+							'cf_transaction_type': new_doc.cf_transaction_type,
+							'cf_company_gstin': new_doc.cf_company_gstin,
+							'cf_party_gstin': new_doc.cf_party_gstin,
+							'cf_fiscal_year': new_doc.cf_fiscal_year,
+							'cf_document_number': new_doc.cf_document_number
+						}
+					if new_doc.cf_note_type and not new_doc.cf_transaction_type == 'Invoice':
+						compare_fields['cf_note_type'] =  new_doc.cf_note_type
+					if new_doc.cf_party:
+						compare_fields['cf_party'] =  new_doc.cf_party
+	
+					existing_doc_name = frappe.db.get_value('CD GSTR 2A Entry', compare_fields, 'name')
+					if not existing_doc_name:
+						total_entries_created += 1
+						new_doc.save()
+					else:
+						is_changed = False
+						existing_doc = frappe.get_doc('CD GSTR 2A Entry', existing_doc_name)
+						meta = frappe.get_meta('CD GSTR 2A Entry').fields
+						for field in meta:
+							if field.fieldtype in ['Data', 'Date', 'Link', 'Currency'] and not field.fieldname == 'cf_uploaded_via':
+								if not getattr(existing_doc, field.fieldname) == getattr(new_doc, field.fieldname):
+									setattr(existing_doc, field.fieldname, getattr(new_doc, field.fieldname))
+									is_changed = True
+						if is_changed:
+							uploaded_doc.append('cf_gstr_2a_updated_records',{
+								"gstr_2a_entry" : existing_doc_name
 							})
-						data['doctype'] = 'CD GSTR 2A Entry'
-						del data['cf_invoice_number']
-						del data['cf_invoice_date']
-		doc.cf_no_of_gstr_2a_entries_by_json = total_entries_by_json
-		doc.cf_no_of_duplicate_entries = len(doc.cf_gstr_2a_duplicate_records)
-		doc.save()
-		frappe.db.set_value('CD GSTR 2A Data Upload Tool',doc.name,'cf_no_of_gstr_2a_entries_by_system', f"""<a href="#List/CD GSTR 2A Entry/List?cf_uploaded_via={doc.name}">{total_entries}</a>""")
-		frappe.db.commit()
-	except:
-		traceback = frappe.get_traceback()
-		frappe.log_error(title = 'GSTR 2A Json Upload Error',message=traceback)		
+							existing_doc.save()
+	return uploaded_doc, total_entries_created
 
 def update_inv_items(inv, new_doc, invoice_item_field_mappings):
 	tax_details = {'iamt': 0, 'camt': 0, 'samt': 0, 'csamt':0, 'rt': 0, 'txval': 0}
