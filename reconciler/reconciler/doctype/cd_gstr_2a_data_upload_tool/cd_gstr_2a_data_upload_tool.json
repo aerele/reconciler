@@ -12,11 +12,11 @@
   "cf_gst_state",
   "cf_company_gstin",
   "section_break_6",
-  "cf_no_of_gstr_2a_entries_by_system",
-  "cf_no_of_gstr_2a_entries_by_json",
+  "cf_no_of_newly_created_entries",
+  "cf_no_of_entries_in_json",
   "column_break_9",
-  "cf_no_of_duplicate_entries",
-  "cf_gstr_2a_duplicate_records"
+  "cf_no_of_updated_entries",
+  "cf_gstr_2a_updated_records"
  ],
  "fields": [
   {
@@ -58,37 +58,37 @@
    "label": "File Summary"
   },
   {
-   "fieldname": "cf_no_of_gstr_2a_entries_by_json",
-   "fieldtype": "Int",
-   "label": "No of GSTR 2A Entries by Json",
-   "read_only": 1
-  },
-  {
-   "fieldname": "cf_no_of_duplicate_entries",
-   "fieldtype": "Int",
-   "label": "No of Duplicate Entries",
-   "read_only": 1
-  },
-  {
-   "fieldname": "cf_gstr_2a_duplicate_records",
-   "fieldtype": "Table",
-   "label": "GSTR 2A Duplicate Records",
-   "options": "CD GSTR 2A Duplicate Records",
-   "read_only": 1
-  },
-  {
    "fieldname": "column_break_9",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "cf_no_of_gstr_2a_entries_by_system",
+   "fieldname": "cf_gstr_2a_updated_records",
+   "fieldtype": "Table",
+   "label": "GSTR 2A Updated Records",
+   "options": "CD GSTR 2A Updated Records",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cf_no_of_updated_entries",
+   "fieldtype": "Int",
+   "label": "No of Updated Entries",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cf_no_of_newly_created_entries",
    "fieldtype": "Read Only",
-   "label": "No of GSTR 2A Entries by System"
+   "label": "No of Newly Created Entries"
+  },
+  {
+   "fieldname": "cf_no_of_entries_in_json",
+   "fieldtype": "Int",
+   "label": "No of Entries in Json",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-04-07 11:55:57.781764",
+ "modified": "2021-04-07 13:24:55.158744",
  "modified_by": "Administrator",
  "module": "Reconciler",
  "name": "CD GSTR 2A Data Upload Tool",
