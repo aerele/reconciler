@@ -5,6 +5,8 @@ from __future__ import unicode_literals
 import frappe, json
 from erpnext.regional.india.utils import get_gst_accounts
 from six import string_types
+import datetime
+from datetime import datetime
 
 def execute(filters=None):
 	return MatchingTool(filters).run()
@@ -40,7 +42,14 @@ class MatchingTool(object):
 					"fieldname": "tax_difference",
 					"fieldtype": "Float",
 					"width": 200
-				}]
+				},
+				{
+					"label": "Total Pending Document",
+					"fieldname": "total_pending_document",
+					"fieldtype": "Int",
+					"width": 200
+				}
+				]
 		else:
 			self.columns = [{
 					"label": "GSTR 2A",
@@ -81,6 +90,12 @@ class MatchingTool(object):
 					"width": 200
 				},
 				{
+					"label": "Status",
+					"fieldname": "status",
+					"fieldtype": "Data",
+					"width": 200
+				},
+				{
 					"label": "View",
 					"fieldname": "view",
 					"fieldtype": "Button",
@@ -89,21 +104,56 @@ class MatchingTool(object):
 
 	def get_data(self):
 		data = []
-		status = [None, 'Pending']
+		date_filters = []
+		month_mapping = {
+		"Jan": 1,
+		"Feb": 2,
+		"Mar": 3,
+		"Apr": 4,
+		"May": 5,
+		"Jun": 6,
+		"Jul": 7,
+		"Aug": 8,
+		"Sep": 9,
+		"Oct": 10,
+		"Nov": 11,
+		"Dec": 12
+		}
+		gstr2a_mappings = {
+			'Invoice Date':[['cf_document_date' ,'>=',self.filters['cf_from_date']],
+		['cf_document_date' ,'<=',self.filters['cf_to_date']]]}
+		pr_mappings = {
+			'Posting Date':[['posting_date' ,'>=',self.filters['cf_from_date']],
+		['posting_date' ,'<=',self.filters['cf_to_date']]],
+			'Supplier Invoice Date':[['bill_date' ,'>=',self.filters['cf_from_date']],
+		['bill_date' ,'<=',self.filters['cf_to_date']]]
+		}
 		if self.filters['cf_view_type'] == 'Supplier View':
+			pr_conditions = [
+			['docstatus' ,'=', 1],
+			['company_gstin', '=', self.filters['cf_company_gstin']]]
 			gstr2a_conditions = [
-			['cf_status' ,'in', status],
-			['cf_document_date' ,'>=',self.filters['cf_from_date']],
-			['cf_document_date' ,'<=',self.filters['cf_to_date']],
 			['cf_company_gstin', '=', self.filters['cf_company_gstin']]]
 			if 'cf_transaction_type' in self.filters:
 				gstr2a_conditions.append(['cf_transaction_type' ,'=', self.filters['cf_transaction_type']])
 
-			gstr2a_entries = frappe.db.get_all('CD GSTR 2A Entry', filters= gstr2a_conditions, fields =['cf_party_gstin','cf_tax_amount', 'cf_party'])
-			pi_entries = frappe.db.get_all('Purchase Invoice', filters=[['bill_date' ,'>=',self.filters['cf_from_date']],
-			['bill_date' ,'<=',self.filters['cf_to_date']],
-			['docstatus' ,'=', 1],
-			['company_gstin', '=', self.filters['cf_company_gstin']]], fields =['supplier_gstin','taxes_and_charges_added', 'supplier'])
+			pr_conditions.extend(pr_mappings[self.filters['cf_filter_pr_based_on']])
+			if self.filters['cf_filter_2a_based_on'] == 'Filing Period':
+				gstr2a_entries = frappe.db.get_all('CD GSTR 2A Entry', filters= gstr2a_conditions, fields =['cf_party_gstin','cf_tax_amount', 'cf_party','cf_gstr15_filing_period'])
+				for entry in gstr2a_entries:
+					from_date = datetime.strptime(self.filters['cf_from_date'], "%Y-%m-%d")
+					to_date = datetime.strptime(self.filters['cf_to_date'], "%Y-%m-%d")
+					filing_period_month = month_mapping[entry['cf_gstr15_filing_period'].split('-')[0]]
+					filing_period_year = int(entry['cf_gstr15_filing_period'].split('-')[1])
+					from_date_year = int(str(from_date.year)[-2:])
+					to_date_year = int(str(to_date.year)[-2:])
+					if not (from_date_year <= filing_period_year and to_date_year <= filing_period_year) and \
+					not(from_date.month <= filing_period_month and to_date.month <= filing_period_month):
+						gstr2a_entries.remove(entry)
+			else:
+				gstr2a_conditions.extend(gstr2a_mappings[self.filters['cf_filter_2a_based_on']])
+				gstr2a_entries = frappe.db.get_all('CD GSTR 2A Entry', filters= gstr2a_conditions, fields =['cf_party_gstin','cf_tax_amount', 'cf_party'])
+			pi_entries = frappe.db.get_all('Purchase Invoice', filters=pr_conditions, fields =['supplier_gstin','taxes_and_charges_added', 'supplier'])
 			supplier_data_by_2a = {}
 			for entry in gstr2a_entries:
 				if not entry['cf_party_gstin'] in supplier_data_by_2a:
@@ -122,6 +172,11 @@ class MatchingTool(object):
 			for key in supplier_data_by_2a.keys():
 				data.append({'supplier_name': supplier_data_by_2a[key][0], 'gstin': key, 'tax_difference': abs(supplier_data_by_2a[key][1]- supplier_data_by_2a[key][2])})
 
+			for d in data:
+				gstr2a_conditions.extend([['cf_party_gstin' ,'=', d['gstin']], ['cf_status' ,'=', 'Pending']])
+				pending_count = len(frappe.get_list('CD GSTR 2A Entry', filters=gstr2a_conditions))
+				d['total_pending_document'] = pending_count
+		
 		else:
 			if not 'cf_supplier' in self.filters:
 				frappe.throw('Please select supplier')
@@ -131,18 +186,29 @@ class MatchingTool(object):
 			if 'cf_match_status' in self.filters:
 				match_status = [self.filters['cf_match_status']]
 
-			gstr2a_conditions = [['cf_document_date' ,'>=',self.filters['cf_from_date']],
-			['cf_status' ,'in', status],
+			gstr2a_conditions = [
 			['cf_party', '=', self.filters['cf_supplier']],
-			['cf_document_date' ,'<=',self.filters['cf_to_date']],
 			['cf_match_status','in', match_status],
 			['cf_company_gstin', '=', self.filters['cf_company_gstin']]]
 
 			if 'cf_transaction_type' in self.filters:
 				gstr2a_conditions.append(['cf_transaction_type' ,'=', self.filters['cf_transaction_type']])
 			
-			gstr2a_entries = frappe.db.get_all('CD GSTR 2A Entry', filters= gstr2a_conditions, fields =['cf_document_number','cf_party_gstin', 'cf_purchase_invoice', 'cf_match_status', 'cf_reason', 'name'])
-
+			if self.filters['cf_filter_2a_based_on'] == 'Filing Period':
+				gstr2a_entries = frappe.db.get_all('CD GSTR 2A Entry', filters= gstr2a_conditions, fields =['cf_document_number','cf_party_gstin', 'cf_purchase_invoice', 'cf_match_status', 'cf_reason', 'name', 'cf_status', 'cf_gstr15_filing_period'])
+				for entry in gstr2a_entries:
+					from_date = datetime.strptime(self.filters['cf_from_date'], "%Y-%m-%d")
+					to_date = datetime.strptime(self.filters['cf_to_date'], "%Y-%m-%d")
+					filing_period_month = month_mapping[entry['cf_gstr15_filing_period'].split('-')[0]]
+					filing_period_year = int(entry['cf_gstr15_filing_period'].split('-')[1])
+					from_date_year = int(str(from_date.year)[-2:])
+					to_date_year = int(str(to_date.year)[-2:])
+					if not (from_date_year <= filing_period_year and to_date_year <= filing_period_year) and \
+					not(from_date.month <= filing_period_month and to_date.month <= filing_period_month):
+						gstr2a_entries.remove(entry)
+			else:
+				gstr2a_conditions.extend(gstr2a_mappings[self.filters['cf_filter_2a_based_on']])
+				gstr2a_entries = frappe.db.get_all('CD GSTR 2A Entry', filters= gstr2a_conditions, fields =['cf_document_number','cf_party_gstin', 'cf_purchase_invoice', 'cf_match_status', 'cf_reason', 'name', 'cf_status'])
 			for entry in gstr2a_entries:
 				linked_inv.add(entry['cf_purchase_invoice'])
 				button = f"""<Button class="btn btn-primary btn-xs center"  gstr2a = {entry["name"]} purchase_inv ={entry["cf_purchase_invoice"]} onClick='update_status(this.getAttribute("gstr2a"), this.getAttribute("purchase_inv"))'>View</a>"""
@@ -156,20 +222,22 @@ class MatchingTool(object):
 				'pr_inv': bill_no, 
 				'match_status': entry['cf_match_status'], 
 				'reason':entry['cf_reason'],
-				'view': button})
+				'view': button,
+				'status': entry['cf_status']})
 
 			if 'Missing in 2A' in match_status:
 				if not 'cf_transaction_type' in self.filters or \
 				self.filters['cf_transaction_type'] == 'Invoice':
-					pi_entries = frappe.db.get_all('Purchase Invoice', filters=[['bill_date' ,'>=',self.filters['cf_from_date']],
-					['bill_date' ,'<=',self.filters['cf_to_date']],
+					pr_conditions = [
 					['docstatus' ,'=', 1],
 					['supplier' ,'=',self.filters['cf_supplier']],
-					['company_gstin', '=', self.filters['cf_company_gstin']]], fields =['name', 'supplier_gstin', 'bill_no'])
+					['company_gstin', '=', self.filters['cf_company_gstin']]]
+					pr_conditions.extend(pr_mappings[self.filters['cf_filter_pr_based_on']])
+					pi_entries = frappe.db.get_all('Purchase Invoice', filters=pr_conditions, fields =['name', 'supplier_gstin', 'bill_no'])
 
 					for inv in pi_entries:
 						if not inv['name'] in linked_inv:
-							button = f"""<Button class="btn btn-primary btn-xs center"  gstr2a = '' purchase_inv ={inv["name"]} onClick='update_status(this.getAttribute("gstr2a"), this.getAttribute("purchase_inv"))'>View</a>"""
+							button = f"""<Button class="btn btn-primary btn-xs center"  gstr2a = '' purchase_inv ={inv["name"]} onClick='render_summary(this.getAttribute("gstr2a"), this.getAttribute("purchase_inv"))'>View</a>"""
 							data.append({
 							'gstra_2a': None,
 							'pr': inv['name'],
@@ -177,28 +245,65 @@ class MatchingTool(object):
 							'pr_inv': inv['bill_no'], 
 							'match_status': 'Missing in 2A', 
 							'reason': None,
-							'view': button})
+							'view': button,
+							'status': 'Pending'})
 		self.data = data
 	
 	def get_report_summary(self):
 		summary = []
 		pr_entries = []
 		pr_tax_amt = 0
-		gstr2a_conditions = [['cf_document_date' ,'>=',self.filters['cf_from_date']],
-			['cf_document_date' ,'<=',self.filters['cf_to_date']],
+		month_mapping = {
+		"Jan": 1,
+		"Feb": 2,
+		"Mar": 3,
+		"Apr": 4,
+		"May": 5,
+		"Jun": 6,
+		"Jul": 7,
+		"Aug": 8,
+		"Sep": 9,
+		"Oct": 10,
+		"Nov": 11,
+		"Dec": 12
+		}
+		gstr2a_mappings = {
+			'Invoice Date':[['cf_document_date' ,'>=',self.filters['cf_from_date']],
+		['cf_document_date' ,'<=',self.filters['cf_to_date']]]}
+		pr_mappings = {
+			'Posting Date':[['posting_date' ,'>=',self.filters['cf_from_date']],
+		['posting_date' ,'<=',self.filters['cf_to_date']]],
+			'Supplier Invoice Date':[['bill_date' ,'>=',self.filters['cf_from_date']],
+		['bill_date' ,'<=',self.filters['cf_to_date']]]
+		}
+		gstr2a_conditions = [
 			['cf_company_gstin', '=', self.filters['cf_company_gstin']]]
-		pr_conditions = [['bill_date' ,'>=',self.filters['cf_from_date']],
-			['bill_date' ,'<=',self.filters['cf_to_date']],
+		pr_conditions = [
 			['docstatus' ,'=', 1],
 			['company_gstin', '=', self.filters['cf_company_gstin']]]
+		pr_conditions.extend(pr_mappings[self.filters['cf_filter_pr_based_on']])
 		if 'cf_supplier' in self.filters:
 			pr_conditions.append(['supplier' ,'=',self.filters['cf_supplier']])
 			gstr2a_conditions.append(['cf_party' ,'=',self.filters['cf_supplier']])
 		if 'cf_transaction_type' in self.filters:
 				gstr2a_conditions.append(['cf_transaction_type' ,'=', self.filters['cf_transaction_type']])
 
+		if self.filters['cf_filter_2a_based_on'] == 'Filing Period':
+			entries = frappe.db.get_all('CD GSTR 2A Entry', filters= gstr2a_conditions, fields =['cf_match_status', 'cf_tax_amount', 'cf_purchase_invoice', 'cf_gstr15_filing_period'])
+			for entry in entries:
+				from_date = datetime.strptime(self.filters['cf_from_date'], "%Y-%m-%d")
+				to_date = datetime.strptime(self.filters['cf_to_date'], "%Y-%m-%d")
+				filing_period_month = month_mapping[entry['cf_gstr15_filing_period'].split('-')[0]]
+				filing_period_year = int(entry['cf_gstr15_filing_period'].split('-')[1])
+				from_date_year = int(str(from_date.year)[-2:])
+				to_date_year = int(str(to_date.year)[-2:])
+				if not (from_date_year <= filing_period_year and to_date_year <= filing_period_year) and \
+				not(from_date.month <= filing_period_month and to_date.month <= filing_period_month):
+					entries.remove(entry)
+		else:
+			gstr2a_conditions.extend(gstr2a_mappings[self.filters['cf_filter_2a_based_on']])
+			entries = frappe.db.get_all('CD GSTR 2A Entry', filters= gstr2a_conditions, fields =['cf_match_status', 'cf_tax_amount', 'cf_purchase_invoice'])
 		match_status = {'Mismatch':'Red', 'Exact Match':'Green', 'Suggested':'Blue', 'Missing in 2A':'Red', 'Missing in PR':'Red'}
-		entries = frappe.db.get_all('CD GSTR 2A Entry', filters= gstr2a_conditions, fields =['cf_match_status', 'cf_tax_amount', 'cf_purchase_invoice'])
 		gstr2a_tax_amt = sum([entry['cf_tax_amount'] for entry in entries if entry['cf_tax_amount']])
 		if not 'cf_transaction_type' in self.filters or \
 				self.filters['cf_transaction_type'] == 'Invoice':

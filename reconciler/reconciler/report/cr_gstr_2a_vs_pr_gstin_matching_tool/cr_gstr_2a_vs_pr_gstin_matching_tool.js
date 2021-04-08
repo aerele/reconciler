@@ -92,6 +92,20 @@ frappe.query_reports["CR GSTR 2A vs PR GSTIN Matching Tool"] = {
 			reqd: 1
 		},
 		{
+			fieldname: 'cf_filter_2a_based_on',
+			label: __('Filter 2A Based On'),
+			fieldtype: 'Select',
+			options: ['Filing Period', 'Invoice Date'],
+			reqd: 1
+		},
+		{
+			fieldname: 'cf_filter_pr_based_on',
+			label: __('Filter PR Based On'),
+			fieldtype: 'Select',
+			options: ['Posting Date', 'Supplier Invoice Date'],
+			reqd: 1
+		},
+		{
 			fieldname: "cf_transaction_type",
 			label: __("Transaction Type"),
 			fieldtype: "Select",
@@ -270,6 +284,30 @@ var render = function(tax_details, other_details, dialog) {
 	`;
 
 	dialog.get_field('preview_html').html(html);
+}
+
+var render_summary= function(gstr2a, purchase_inv) {
+	var dialog = new frappe.ui.Dialog({
+		title: __("Selection Summary"),
+		fields: [
+			{
+				"label": "Preview",
+				"fieldname": "preview_html",
+				"fieldtype": "HTML"
+			}
+		]
+	});
+	frappe.call('reconciler.reconciler.report.cr_gstr_2a_vs_pr_gstin_matching_tool.cr_gstr_2a_vs_pr_gstin_matching_tool.get_selection_details', {
+		gstr2a: gstr2a,
+		purchase_inv: purchase_inv,
+		show_tax: 1,
+		freeze: true
+	}).then(r => {
+		this.render(r.message[0], r.message[1], dialog);
+	});
+	dialog.get_field('preview_html').html('Loading...');
+	dialog.show();
+	dialog.$wrapper.find('.modal-dialog').css("width", "800px");
 }
 
 var update_status= function(gstr2a, purchase_inv) {
