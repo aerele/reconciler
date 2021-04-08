@@ -92,12 +92,10 @@ frappe.query_reports["CR GSTR 2A vs PR GSTIN Matching Tool"] = {
 			reqd: 1
 		},
 		{
-			fieldname: "cf_document_type",
-			label: __("Document Type"),
+			fieldname: "cf_transaction_type",
+			label: __("Transaction Type"),
 			fieldtype: "Select",
-			options: ['Invoices', 'CDN'],
-			default: 'Invoices',
-			reqd: 1
+			options: ['','Invoice', 'CDN']
 		},
 		{
 			fieldname: "cf_view_type",

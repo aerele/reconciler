@@ -22,138 +22,145 @@ class MatchingTool(object):
 		return self.columns, self.data, None, None, self.report_summary, skip_total_row
 
 	def get_columns(self):
-		if self.filters and self.filters['cf_document_type'] == 'Invoices':
-			if self.filters['cf_view_type'] == 'Supplier View':
-				self.columns = [{
-						"label": "GSTIN",
-						"fieldname": "gstin",
-						"fieldtype": "Data",
-						"width": 200
-					},
-					{
-						"label": "Supplier Name",
-						"fieldname": "supplier_name",
-						"fieldtype": "Data",
-						"width": 200
-					},
-					{
-						"label": "Tax Difference",
-						"fieldname": "tax_difference",
-						"fieldtype": "Float",
-						"width": 200
-					}]
-			else:
-				self.columns = [{
-						"label": "GSTR 2A",
-						"fieldname": "gstr_2a",
-						"fieldtype": "Link",
-						"options": "CD GSTR 2A Entry",
-						"width": 200
-					},
-					{
-						"label": "PR",
-						"fieldname": "pr",
-						"fieldtype": "Link",
-						"options": "Purchase Invoice",
-						"width": 200
-					},
-					{
-						"label": "GSTR 2A - Invoice Number",
-						"fieldname": "gstr_2a_inv",
-						"fieldtype": "Data",
-						"width": 200
-					},
-					{
-						"label": "PR - Invoice Number",
-						"fieldname": "pr_inv",
-						"fieldtype": "Data",
-						"width": 200
-					},
-					{
-						"label": "Match Status",
-						"fieldname": "match_status",
-						"fieldtype": "Data",
-						"width": 200
-					},
-					{
-						"label": "Reason",
-						"fieldname": "reason",
-						"fieldtype": "Data",
-						"width": 200
-					},
-					{
-						"label": "View",
-						"fieldname": "view",
-						"fieldtype": "Button",
-						"width": 200
-					}]
+		if self.filters['cf_view_type'] == 'Supplier View':
+			self.columns = [{
+					"label": "GSTIN",
+					"fieldname": "gstin",
+					"fieldtype": "Data",
+					"width": 200
+				},
+				{
+					"label": "Supplier Name",
+					"fieldname": "supplier_name",
+					"fieldtype": "Data",
+					"width": 200
+				},
+				{
+					"label": "Tax Difference",
+					"fieldname": "tax_difference",
+					"fieldtype": "Float",
+					"width": 200
+				}]
+		else:
+			self.columns = [{
+					"label": "GSTR 2A",
+					"fieldname": "gstr_2a",
+					"fieldtype": "Link",
+					"options": "CD GSTR 2A Entry",
+					"width": 200
+				},
+				{
+					"label": "PR",
+					"fieldname": "pr",
+					"fieldtype": "Link",
+					"options": "Purchase Invoice",
+					"width": 200
+				},
+				{
+					"label": "GSTR 2A - Invoice Number",
+					"fieldname": "gstr_2a_inv",
+					"fieldtype": "Data",
+					"width": 200
+				},
+				{
+					"label": "PR - Invoice Number",
+					"fieldname": "pr_inv",
+					"fieldtype": "Data",
+					"width": 200
+				},
+				{
+					"label": "Match Status",
+					"fieldname": "match_status",
+					"fieldtype": "Data",
+					"width": 200
+				},
+				{
+					"label": "Reason",
+					"fieldname": "reason",
+					"fieldtype": "Data",
+					"width": 200
+				},
+				{
+					"label": "View",
+					"fieldname": "view",
+					"fieldtype": "Button",
+					"width": 200
+				}]
 
 	def get_data(self):
 		data = []
 		status = [None, 'Pending']
-		if self.filters and self.filters['cf_document_type'] == 'Invoices':
-			if self.filters['cf_view_type'] == 'Supplier View':
-				gstr2a_entries = frappe.db.get_all('CD GSTR 2A Entry', filters=[
-				['cf_status' ,'in', status],
-				['docstatus' ,'=', 1],
-				['cf_invoice_date' ,'>=',self.filters['cf_from_date']],
-				['cf_invoice_date' ,'<=',self.filters['cf_to_date']],
-				['cf_company_gstin', '=', self.filters['cf_company_gstin']]], fields =['cf_party_gstin','cf_tax_amount', 'cf_party'])
-				
-				pi_entries = frappe.db.get_all('Purchase Invoice', filters=[['bill_date' ,'>=',self.filters['cf_from_date']],
-				['bill_date' ,'<=',self.filters['cf_to_date']],
-				['docstatus' ,'=', 1],
-				['company_gstin', '=', self.filters['cf_company_gstin']]], fields =['supplier_gstin','taxes_and_charges_added', 'supplier'])
+		if self.filters['cf_view_type'] == 'Supplier View':
+			gstr2a_conditions = [
+			['cf_status' ,'in', status],
+			['cf_document_date' ,'>=',self.filters['cf_from_date']],
+			['cf_document_date' ,'<=',self.filters['cf_to_date']],
+			['cf_company_gstin', '=', self.filters['cf_company_gstin']]]
+			if 'cf_transaction_type' in self.filters:
+				gstr2a_conditions.append(['cf_transaction_type' ,'=', self.filters['cf_transaction_type']])
 
-				supplier_data_by_2a = {}
-				for entry in gstr2a_entries:
-					if not entry['cf_party_gstin'] in supplier_data_by_2a:
-						supplier_data_by_2a[entry['cf_party_gstin']] = [entry['cf_party'], entry['cf_tax_amount'], 0]
-					else:
-						supplier_data_by_2a[entry['cf_party_gstin']][1] += entry['cf_tax_amount']
-				
+			gstr2a_entries = frappe.db.get_all('CD GSTR 2A Entry', filters= gstr2a_conditions, fields =['cf_party_gstin','cf_tax_amount', 'cf_party'])
+			pi_entries = frappe.db.get_all('Purchase Invoice', filters=[['bill_date' ,'>=',self.filters['cf_from_date']],
+			['bill_date' ,'<=',self.filters['cf_to_date']],
+			['docstatus' ,'=', 1],
+			['company_gstin', '=', self.filters['cf_company_gstin']]], fields =['supplier_gstin','taxes_and_charges_added', 'supplier'])
+			supplier_data_by_2a = {}
+			for entry in gstr2a_entries:
+				if not entry['cf_party_gstin'] in supplier_data_by_2a:
+					supplier_data_by_2a[entry['cf_party_gstin']] = [entry['cf_party'], entry['cf_tax_amount'], 0]
+				else:
+					supplier_data_by_2a[entry['cf_party_gstin']][1] += entry['cf_tax_amount']
+			
+			if not 'cf_transaction_type' in self.filters or \
+				self.filters['cf_transaction_type'] == 'Invoice':
 				for entry in pi_entries:
 					if not entry['supplier_gstin'] in supplier_data_by_2a:
 						supplier_data_by_2a[entry['supplier_gstin']] = [entry['supplier'], 0, entry['taxes_and_charges_added']]
 					else:
 						supplier_data_by_2a[entry['supplier_gstin']][2] += entry['taxes_and_charges_added']
 
-				for key in supplier_data_by_2a.keys():
-					data.append({'supplier_name': supplier_data_by_2a[key][0], 'gstin': key, 'tax_difference': abs(supplier_data_by_2a[key][1]- supplier_data_by_2a[key][2])})
+			for key in supplier_data_by_2a.keys():
+				data.append({'supplier_name': supplier_data_by_2a[key][0], 'gstin': key, 'tax_difference': abs(supplier_data_by_2a[key][1]- supplier_data_by_2a[key][2])})
 
-			else:
-				if not 'cf_supplier' in self.filters:
-					frappe.throw('Please select supplier')
+		else:
+			if not 'cf_supplier' in self.filters:
+				frappe.throw('Please select supplier')
 
-				linked_inv = set()
-				match_status = ["Exact Match", "Suggested", "Mismatch", "Missing in PR", "Missing in 2A"]
-				if 'cf_match_status' in self.filters:
-					match_status = [self.filters['cf_match_status']]
-				
-				gstr2a_entries = frappe.db.get_all('CD GSTR 2A Entry', filters=[['cf_invoice_date' ,'>=',self.filters['cf_from_date']],
-				['cf_status' ,'in', status],
-				['docstatus' ,'=', 1],
-				['cf_party', '=', self.filters['cf_supplier']],
-				['cf_invoice_date' ,'<=',self.filters['cf_to_date']],
-				['cf_match_status','in', match_status],
-				['cf_company_gstin', '=', self.filters['cf_company_gstin']]], fields =['cf_invoice_number','cf_party_gstin', 'cf_purchase_invoice', 'cf_match_status', 'cf_reason', 'name'])
+			linked_inv = set()
+			match_status = ["Exact Match", "Suggested", "Mismatch", "Missing in PR", "Missing in 2A"]
+			if 'cf_match_status' in self.filters:
+				match_status = [self.filters['cf_match_status']]
 
-				for entry in gstr2a_entries:
-					linked_inv.add(entry['cf_purchase_invoice'])
-					button = f"""<Button class="btn btn-primary btn-xs center"  gstr2a = {entry["name"]} purchase_inv ={entry["cf_purchase_invoice"]} onClick='update_status(this.getAttribute("gstr2a"), this.getAttribute("purchase_inv"))'>View</a>"""
-					if 'Missing in PR' == entry['cf_match_status']:
-						button = f"""<Button class="btn btn-primary btn-xs center"  gstr2a = {entry["name"]} purchase_inv ={entry["cf_purchase_invoice"]} onClick='create_purchase_inv(this.getAttribute("gstr2a"), this.getAttribute("purchase_inv"))'>View</a>"""
-					bill_no = frappe.db.get_value("Purchase Invoice", entry['cf_purchase_invoice'], 'bill_no')
-					data.append({
-					'gstr_2a': entry['name'],
-					'pr': entry['cf_purchase_invoice'],
-					'gstr_2a_inv': entry['cf_invoice_number'], 
-					'pr_inv': bill_no, 
-					'match_status': entry['cf_match_status'], 
-					'reason':entry['cf_reason'],
-					'view': button})
+			gstr2a_conditions = [['cf_document_date' ,'>=',self.filters['cf_from_date']],
+			['cf_status' ,'in', status],
+			['cf_party', '=', self.filters['cf_supplier']],
+			['cf_document_date' ,'<=',self.filters['cf_to_date']],
+			['cf_match_status','in', match_status],
+			['cf_company_gstin', '=', self.filters['cf_company_gstin']]]
 
-				if 'Missing in 2A' in match_status:
+			if 'cf_transaction_type' in self.filters:
+				gstr2a_conditions.append(['cf_transaction_type' ,'=', self.filters['cf_transaction_type']])
+			
+			gstr2a_entries = frappe.db.get_all('CD GSTR 2A Entry', filters= gstr2a_conditions, fields =['cf_document_number','cf_party_gstin', 'cf_purchase_invoice', 'cf_match_status', 'cf_reason', 'name'])
+
+			for entry in gstr2a_entries:
+				linked_inv.add(entry['cf_purchase_invoice'])
+				button = f"""<Button class="btn btn-primary btn-xs center"  gstr2a = {entry["name"]} purchase_inv ={entry["cf_purchase_invoice"]} onClick='update_status(this.getAttribute("gstr2a"), this.getAttribute("purchase_inv"))'>View</a>"""
+				if 'Missing in PR' == entry['cf_match_status']:
+					button = f"""<Button class="btn btn-primary btn-xs center"  gstr2a = {entry["name"]} purchase_inv ={entry["cf_purchase_invoice"]} onClick='create_purchase_inv(this.getAttribute("gstr2a"), this.getAttribute("purchase_inv"))'>View</a>"""
+				bill_no = frappe.db.get_value("Purchase Invoice", entry['cf_purchase_invoice'], 'bill_no')
+				data.append({
+				'gstr_2a': entry['name'],
+				'pr': entry['cf_purchase_invoice'],
+				'gstr_2a_inv': entry['cf_document_number'], 
+				'pr_inv': bill_no, 
+				'match_status': entry['cf_match_status'], 
+				'reason':entry['cf_reason'],
+				'view': button})
+
+			if 'Missing in 2A' in match_status:
+				if not 'cf_transaction_type' in self.filters or \
+				self.filters['cf_transaction_type'] == 'Invoice':
 					pi_entries = frappe.db.get_all('Purchase Invoice', filters=[['bill_date' ,'>=',self.filters['cf_from_date']],
 					['bill_date' ,'<=',self.filters['cf_to_date']],
 					['docstatus' ,'=', 1],
@@ -175,9 +182,10 @@ class MatchingTool(object):
 	
 	def get_report_summary(self):
 		summary = []
-		gstr2a_conditions = [['cf_invoice_date' ,'>=',self.filters['cf_from_date']],
-			['cf_invoice_date' ,'<=',self.filters['cf_to_date']],
-			['docstatus' ,'=', 1],
+		pr_entries = []
+		pr_tax_amt = 0
+		gstr2a_conditions = [['cf_document_date' ,'>=',self.filters['cf_from_date']],
+			['cf_document_date' ,'<=',self.filters['cf_to_date']],
 			['cf_company_gstin', '=', self.filters['cf_company_gstin']]]
 		pr_conditions = [['bill_date' ,'>=',self.filters['cf_from_date']],
 			['bill_date' ,'<=',self.filters['cf_to_date']],
@@ -186,20 +194,39 @@ class MatchingTool(object):
 		if 'cf_supplier' in self.filters:
 			pr_conditions.append(['supplier' ,'=',self.filters['cf_supplier']])
 			gstr2a_conditions.append(['cf_party' ,'=',self.filters['cf_supplier']])
+		if 'cf_transaction_type' in self.filters:
+				gstr2a_conditions.append(['cf_transaction_type' ,'=', self.filters['cf_transaction_type']])
+
 		match_status = {'Mismatch':'Red', 'Exact Match':'Green', 'Suggested':'Blue', 'Missing in 2A':'Red', 'Missing in PR':'Red'}
-		entries = frappe.db.get_all('CD GSTR 2A Entry', filters= gstr2a_conditions, fields =['cf_match_status', 'cf_tax_amount'])
-		pr_entries = frappe.db.get_all('Purchase Invoice', filters= pr_conditions , fields =['taxes_and_charges_added'])
+		entries = frappe.db.get_all('CD GSTR 2A Entry', filters= gstr2a_conditions, fields =['cf_match_status', 'cf_tax_amount', 'cf_purchase_invoice'])
 		gstr2a_tax_amt = sum([entry['cf_tax_amount'] for entry in entries if entry['cf_tax_amount']])
-		pr_tax_amt = sum([entry['taxes_and_charges_added'] for entry in pr_entries if entry['taxes_and_charges_added']])
+		if not 'cf_transaction_type' in self.filters or \
+				self.filters['cf_transaction_type'] == 'Invoice':
+			pr_entries = frappe.db.get_all('Purchase Invoice', filters= pr_conditions , fields =['taxes_and_charges_added', 'name'])
+			pr_tax_amt = sum([entry['taxes_and_charges_added'] for entry in pr_entries if entry['taxes_and_charges_added']])
+		pr_by_2a = [entry['cf_purchase_invoice'] for entry in entries]
+		pr = [entry['name'] for entry in pr_entries]
 		for status in match_status:
-			summary.append(
+			if status == 'Missing in 2A':
+				diff = len(set(pr)-set(pr_by_2a))
+				summary.append(
 				{
-				"value": len([entry for entry in entries if entry['cf_match_status'] == status]),
+				"value": diff,
 				"indicator": match_status[status],
 				"label": status,
 				"datatype": "Float",
-			},
-			)
+				},
+				)
+
+			else:
+				summary.append(
+					{
+					"value": len([entry for entry in entries if entry['cf_match_status'] == status]),
+					"indicator": match_status[status],
+					"label": status,
+					"datatype": "Float",
+				},
+				)
 		summary.append(
 				{
 				"value": f'{len(entries)}(2A) & {len(pr_entries)}(PR)',
@@ -266,8 +293,8 @@ def get_selection_details(gstr2a, purchase_inv):
 							gstr2a_doc.cf_sgst_amount,
 							gstr2a_doc.cf_cess_amount]
 		
-		other_details['GSTR-2A'] = [gstr2a_doc.cf_invoice_number,
-							gstr2a_doc.cf_invoice_date,
+		other_details['GSTR-2A'] = [gstr2a_doc.cf_document_number,
+							gstr2a_doc.cf_document_date,
 							gstr2a_doc.cf_place_of_supply,
 							gstr2a_doc.cf_reverse_charge]
 
