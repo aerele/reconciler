@@ -110,6 +110,8 @@ class CDGSTR2AEntry(Document):
 def update_entry(doc_name):
 	doc = frappe.get_doc('CD GSTR 2A Entry', doc_name)
 	doc.cf_party = get_supplier_by_gstin(doc.cf_party_gstin)
+	if not doc.cf_status:
+		doc.cf_status = 'Pending'
 	if doc.cf_transaction_type == 'Invoice':
 		matched_inv = doc.check_for_exact_match()
 		if matched_inv:
