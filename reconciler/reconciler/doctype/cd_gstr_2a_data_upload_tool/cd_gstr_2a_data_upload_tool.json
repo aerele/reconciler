@@ -1,0 +1,147 @@
+{
+ "actions": [],
+ "autoname": "format:GSTR2A Upload on {creation}",
+ "creation": "2021-03-25 11:26:46.398378",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "cf_company",
+  "cf_upload_gstr_2a_data",
+  "column_break_3",
+  "cf_gst_state",
+  "cf_company_gstin",
+  "section_break_6",
+  "cf_no_of_newly_created_entries",
+  "cf_no_of_entries_in_json",
+  "column_break_9",
+  "cf_no_of_updated_entries",
+  "cf_gstr_2a_updated_records"
+ ],
+ "fields": [
+  {
+   "fieldname": "cf_company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "cf_company_gstin",
+   "fieldtype": "Data",
+   "label": "Company GSTIN",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cf_upload_gstr_2a_data",
+   "fieldtype": "Attach",
+   "label": "Upload GSTR 2A Data",
+   "reqd": 1
+  },
+  {
+   "fieldname": "cf_gst_state",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "GST State",
+   "options": "\nAndaman and Nicobar Islands\nAndhra Pradesh\nArunachal Pradesh\nAssam\nBihar\nChandigarh\nChhattisgarh\nDadra and Nagar Haveli and Daman and Diu\nDelhi\nGoa\nGujarat\nHaryana\nHimachal Pradesh\nJammu and Kashmir\nJharkhand\nKarnataka\nKerala\nLadakh\nLakshadweep Islands\nMadhya Pradesh\nMaharashtra\nManipur\nMeghalaya\nMizoram\nNagaland\nOdisha\nOther Territory\nPondicherry\nPunjab\nRajasthan\nSikkim\nTamil Nadu\nTelangana\nTripura\nUttar Pradesh\nUttarakhand\nWest Bengal",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval: !doc.__islocal",
+   "fieldname": "section_break_6",
+   "fieldtype": "Section Break",
+   "label": "File Summary"
+  },
+  {
+   "fieldname": "column_break_9",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cf_gstr_2a_updated_records",
+   "fieldtype": "Table",
+   "label": "GSTR 2A Updated Records",
+   "options": "CD GSTR 2A Updated Records",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cf_no_of_updated_entries",
+   "fieldtype": "Int",
+   "label": "No of Updated Entries",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cf_no_of_newly_created_entries",
+   "fieldtype": "Read Only",
+   "label": "No of Newly Created Entries"
+  },
+  {
+   "fieldname": "cf_no_of_entries_in_json",
+   "fieldtype": "Int",
+   "label": "No of Entries in Json",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2021-04-07 13:24:55.158744",
+ "modified_by": "Administrator",
+ "module": "Reconciler",
+ "name": "CD GSTR 2A Data Upload Tool",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts User",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Auditor",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
