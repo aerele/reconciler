@@ -296,7 +296,9 @@ def get_selection_details(gstr2a, purchase_inv):
 		other_details['GSTR-2A'] = [gstr2a_doc.cf_document_number,
 							gstr2a_doc.cf_document_date,
 							gstr2a_doc.cf_place_of_supply,
-							gstr2a_doc.cf_reverse_charge]
+							gstr2a_doc.cf_reverse_charge,
+							f'{gstr2a_doc.cf_document_date.month}/{gstr2a_doc.cf_document_date.year}',
+							'Filed' if gstr2a_doc.cf_gstr15_filing_status == 'Y' else 'Not Filed']
 
 	if pi_doc:
 		pi_details = [pi_doc.total,
@@ -311,7 +313,9 @@ def get_selection_details(gstr2a, purchase_inv):
 		other_details['PR'] = [pi_doc.bill_no,
 							pi_doc.bill_date,
 							pi_doc.place_of_supply,
-							pi_doc.reverse_charge]
+							pi_doc.reverse_charge,
+							f'{pi_doc.posting_date.month}/{pi_doc.posting_date.year}' ,
+							'Not in supplier data']
 	return [tax_details, other_details]
 
 @frappe.whitelist()

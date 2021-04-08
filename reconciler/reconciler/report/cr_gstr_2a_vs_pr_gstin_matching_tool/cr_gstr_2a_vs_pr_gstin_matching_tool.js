@@ -256,6 +256,8 @@ var render = function(tax_details, other_details, dialog) {
 						<th width="10%">${__('Date')}</th>
 						<th width="10%">${__('POS')}</th>
 						<th width="10%">${__('Reverse Charge')}</th>
+						<th width="10%">${__('Return Period')}</th>
+						<th width="10%">${__('Filing Status')}</th>
 					</tr>
 					${summary}
 				</table>
