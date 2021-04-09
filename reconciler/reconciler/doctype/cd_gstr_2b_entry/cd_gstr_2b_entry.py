@@ -93,9 +93,8 @@ class CDGSTR2BEntry(Document):
 							accounts.append(0)
 						accounts[-1]+=row.tax_amount
 			for acc in gst_accounts:
-				if len(gst_accounts[acc])==3:
+				if len(gst_accounts[acc])==len(gst_accounts[list(gst_accounts.keys())[0]]):
 					tax_amt = gst_accounts[acc][-1]
-					print(tax_amt, 'ee')
 					if tax_amt:
 						if abs(getattr(self, account_head_fields[acc]) - tax_amt) > 1:
 							reason.append(account_head_fields[acc][2:].title().replace('_', ' '))
