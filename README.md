@@ -1,6 +1,6 @@
 ## Reconciler
 
-Reconciliation tool for GSTR 2A and Purchase Invoice
+Reconciliation tool for GSTR 2B and Purchase Invoice
 
 #### License
 
