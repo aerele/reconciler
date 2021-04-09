@@ -127,4 +127,5 @@ def update_entry(doc_name):
 				doc.cf_match_status = 'Missing in PR'
 	else:
 		doc.cf_match_status = 'Missing in PR'
-	doc.save()
+	doc.save(ignore_permissions=True)
+	doc.reload()

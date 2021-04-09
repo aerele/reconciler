@@ -70,7 +70,8 @@ def create_gstr2b_entries(json_data, doc):
 				data, doc, total_entries_created)
 
 		doc.cf_no_of_updated_entries = len(doc.cf_gstr_2b_updated_records)
-		doc.save()
+		doc.save(ignore_permissions=True)
+		doc.reload()
 		frappe.db.set_value('CD GSTR 2B Data Upload Tool',doc.name,'cf_no_of_newly_created_entries', f"""<a href="#List/CD GSTR 2B Entry/List?cf_uploaded_via={doc.name}">{total_entries_created}</a>""")
 		frappe.db.commit()
 	except:
@@ -214,7 +215,8 @@ def update_transaction_details(txn_key, txn_details, mappings, data, uploaded_do
 			existing_doc_name = frappe.db.get_value('CD GSTR 2B Entry', compare_fields, 'name')
 			if not existing_doc_name:
 				total_entries_created += 1
-				new_doc.save()
+				new_doc.save(ignore_permissions=True)
+				new_doc.reload()
 			else:
 				is_changed = False
 				existing_doc = frappe.get_doc('CD GSTR 2B Entry', existing_doc_name)
@@ -228,7 +230,8 @@ def update_transaction_details(txn_key, txn_details, mappings, data, uploaded_do
 					uploaded_doc.append('cf_gstr_2b_updated_records',{
 						"gstr_2b_entry" : existing_doc_name
 					})
-					existing_doc.save()
+					existing_doc.save(ignore_permissions=True)
+					existing_doc.reload()
 	return uploaded_doc, total_entries_created
 
 def update_inv_items(inv, new_doc, invoice_item_field_mappings):
