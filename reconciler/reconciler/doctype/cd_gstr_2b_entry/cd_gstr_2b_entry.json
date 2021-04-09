@@ -1,0 +1,372 @@
+{
+ "actions": [],
+ "autoname": "format:GSTR2B-{YY}-{MM}-{####}",
+ "creation": "2021-04-08 18:49:58.897498",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "cf_generation_date",
+  "cf_status",
+  "cf_company",
+  "cf_return_period",
+  "column_break_3",
+  "cf_gst_state",
+  "cf_company_gstin",
+  "party_details_section",
+  "cf_party_gstin",
+  "cf_trade_name",
+  "cf_party",
+  "column_break_10",
+  "cf_gstr15_filing_date",
+  "cf_gstr15_filing_period",
+  "cf_document_details_section",
+  "cf_transaction_type",
+  "cf_document_number",
+  "cf_document_date",
+  "cf_invoice_type",
+  "cf_note_type",
+  "cf_note_supply_type",
+  "column_break_8",
+  "cf_fiscal_year",
+  "cf_reverse_charge",
+  "cf_itc_availability",
+  "cf_reason_for_itc_unavailability",
+  "cf_place_of_supply",
+  "cf_total_amount",
+  "section_break_21",
+  "cf_gstr_2b_invoice_item_details",
+  "tax_details_section",
+  "cf_tax_rate",
+  "cf_taxable_amount",
+  "cf_tax_amount",
+  "column_break_14",
+  "cf_igst_amount",
+  "cf_cgst_amount",
+  "cf_sgst_amount",
+  "cf_cess_amount",
+  "section_break_16",
+  "cf_purchase_invoice",
+  "cf_match_status",
+  "cf_reason",
+  "column_break_22",
+  "cf_uploaded_via",
+  "cf_other_fields"
+ ],
+ "fields": [
+  {
+   "fieldname": "cf_status",
+   "fieldtype": "Data",
+   "label": "Status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cf_company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cf_gst_state",
+   "fieldtype": "Data",
+   "label": "GST State",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cf_company_gstin",
+   "fieldtype": "Data",
+   "label": "Company GSTIN",
+   "read_only": 1
+  },
+  {
+   "fieldname": "party_details_section",
+   "fieldtype": "Section Break",
+   "label": "Party Details"
+  },
+  {
+   "fieldname": "cf_party_gstin",
+   "fieldtype": "Data",
+   "label": "Party GSTIN",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cf_party",
+   "fieldtype": "Link",
+   "label": "Party",
+   "options": "Supplier",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_10",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cf_gstr15_filing_date",
+   "fieldtype": "Data",
+   "label": "GSTR1/5 Filing Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cf_gstr15_filing_period",
+   "fieldtype": "Data",
+   "label": "GSTR1/5 Filing Period",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cf_document_details_section",
+   "fieldtype": "Section Break",
+   "label": "Document Details"
+  },
+  {
+   "fieldname": "cf_transaction_type",
+   "fieldtype": "Data",
+   "label": "Transaction Type",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cf_document_number",
+   "fieldtype": "Data",
+   "label": "Document Number",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cf_document_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Document Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cf_invoice_type",
+   "fieldtype": "Data",
+   "label": "Invoice Type",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cf_note_type",
+   "fieldtype": "Data",
+   "label": "Note Type",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_8",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cf_fiscal_year",
+   "fieldtype": "Data",
+   "label": "Fiscal Year",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cf_reverse_charge",
+   "fieldtype": "Data",
+   "label": "Reverse Charge",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cf_place_of_supply",
+   "fieldtype": "Data",
+   "label": "Place of Supply",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cf_total_amount",
+   "fieldtype": "Currency",
+   "label": "Total Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_21",
+   "fieldtype": "Section Break",
+   "read_only": 1
+  },
+  {
+   "fieldname": "tax_details_section",
+   "fieldtype": "Section Break",
+   "label": "Tax Details"
+  },
+  {
+   "fieldname": "cf_tax_rate",
+   "fieldtype": "Currency",
+   "label": "Tax Rate",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cf_taxable_amount",
+   "fieldtype": "Currency",
+   "label": "Taxable Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cf_tax_amount",
+   "fieldtype": "Currency",
+   "label": "Tax Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_14",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cf_igst_amount",
+   "fieldtype": "Currency",
+   "label": "IGST Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cf_cgst_amount",
+   "fieldtype": "Currency",
+   "label": "CGST Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cf_sgst_amount",
+   "fieldtype": "Currency",
+   "label": "SGST Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cf_cess_amount",
+   "fieldtype": "Currency",
+   "label": "Cess Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_16",
+   "fieldtype": "Section Break",
+   "label": "More Information"
+  },
+  {
+   "fieldname": "cf_purchase_invoice",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Purchase Invoice",
+   "options": "Purchase Invoice",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cf_match_status",
+   "fieldtype": "Data",
+   "label": "Match Status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cf_reason",
+   "fieldtype": "Data",
+   "label": "Reason",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_22",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cf_uploaded_via",
+   "fieldtype": "Data",
+   "label": "Uploaded Via",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cf_other_fields",
+   "fieldtype": "Code",
+   "label": "Other Fields",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cf_gstr_2b_invoice_item_details",
+   "fieldtype": "Table",
+   "label": "GSTR 2B Invoice Item Details",
+   "options": "CD GSTR 2B Invoice Item Details",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cf_return_period",
+   "fieldtype": "Data",
+   "label": "Return Period",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cf_trade_name",
+   "fieldtype": "Data",
+   "label": "Trade Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cf_itc_availability",
+   "fieldtype": "Data",
+   "label": "ITC Availability",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cf_reason_for_itc_unavailability",
+   "fieldtype": "Data",
+   "label": "Reason for ITC Unavailability",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cf_note_supply_type",
+   "fieldtype": "Data",
+   "label": "Note Supply Type",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cf_generation_date",
+   "fieldtype": "Date",
+   "label": "Generation Date",
+   "read_only": 1
+  }
+ ],
+ "in_create": 1,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2021-04-09 11:10:48.525491",
+ "modified_by": "Administrator",
+ "module": "Reconciler",
+ "name": "CD GSTR 2B Entry",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts User",
+   "share": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts Manager",
+   "share": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Auditor",
+   "share": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
