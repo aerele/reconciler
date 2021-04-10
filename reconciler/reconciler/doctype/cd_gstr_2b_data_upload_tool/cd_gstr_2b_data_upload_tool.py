@@ -71,7 +71,7 @@ def create_gstr2b_entries(json_data, doc):
 		if 'cdnr' in json_data['data']['docdata']:
 			transaction_based_mappings = {
 				'typ': 'cf_note_type',
-				"nt_num": 'cf_document_number',
+				"ntnum": 'cf_document_number',
 				'suptyp': 'cf_note_supply_type'
 				}
 			data['cf_transaction_type'] = 'CDN'
@@ -229,17 +229,16 @@ def update_transaction_details(txn_key, txn_details, mappings, data, uploaded_do
 
 def update_inv_items(inv, new_doc, invoice_item_field_mappings):
 	tax_details = {'igst': 0, 'cgst': 0, 'sgst': 0, 'cess':0, 'rt': 0, 'txval': 0}
-	item_list = []
-	for row in inv['items']:
+	for row in inv['items'][:]:
 		item_details = {}
-		for item_det in list(row):
+		for item_det in list(row.keys()):
 			if item_det in invoice_item_field_mappings:
 				item_details[invoice_item_field_mappings[item_det]] = row[item_det]
 				tax_details[item_det] += row[item_det]
 				del row[item_det]
+		new_doc.append('cf_gstr_2b_invoice_item_details', item_details)
 		if len(row) == 1 and 'num' in row:
 			inv['items'].remove(row)
-		new_doc.append('cf_gstr_2b_invoice_item_details', item_details)
 	if not inv['items']:
 		del inv['items']
 	return new_doc, tax_details
