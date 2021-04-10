@@ -69,7 +69,6 @@ def create_gstr2b_entries(json_data, doc):
 			doc, total_entries_created = update_transaction_details('nt', json_data['data']['docdata']['cdnr'], transaction_based_mappings,\
 				data, doc, total_entries_created)
 
-		doc.cf_no_of_updated_entries = len(doc.cf_gstr_2b_updated_records)
 		doc.save(ignore_permissions=True)
 		doc.reload()
 		frappe.db.set_value('CD GSTR 2B Data Upload Tool',doc.name,'cf_no_of_newly_created_entries', f"""<a href="#List/CD GSTR 2B Entry/List?cf_uploaded_via={doc.name}">{total_entries_created}</a>""")
@@ -217,21 +216,6 @@ def update_transaction_details(txn_key, txn_details, mappings, data, uploaded_do
 				total_entries_created += 1
 				new_doc.save(ignore_permissions=True)
 				new_doc.reload()
-			else:
-				is_changed = False
-				existing_doc = frappe.get_doc('CD GSTR 2B Entry', existing_doc_name)
-				meta = frappe.get_meta('CD GSTR 2B Entry').fields
-				for field in meta:
-					if field.fieldtype in ['Data', 'Date', 'Link', 'Currency'] and not field.fieldname == 'cf_uploaded_via':
-						if not getattr(existing_doc, field.fieldname) == getattr(new_doc, field.fieldname):
-							setattr(existing_doc, field.fieldname, getattr(new_doc, field.fieldname))
-							is_changed = True
-				if is_changed:
-					uploaded_doc.append('cf_gstr_2b_updated_records',{
-						"gstr_2b_entry" : existing_doc_name
-					})
-					existing_doc.save(ignore_permissions=True)
-					existing_doc.reload()
 	return uploaded_doc, total_entries_created
 
 def update_inv_items(inv, new_doc, invoice_item_field_mappings):
