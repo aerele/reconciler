@@ -6,6 +6,7 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "cf_return_period",
   "cf_company",
   "cf_upload_gstr_2b_data",
   "column_break_3",
@@ -64,11 +65,17 @@
    "fieldtype": "Attach",
    "label": "Upload GSTR 2B Data",
    "reqd": 1
+  },
+  {
+   "fieldname": "cf_return_period",
+   "fieldtype": "Data",
+   "label": "Return Period",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-04-10 14:48:12.699583",
+ "modified": "2021-04-10 14:57:00.742698",
  "modified_by": "Administrator",
  "module": "Reconciler",
  "name": "CD GSTR 2B Data Upload Tool",

@@ -10,12 +10,21 @@ from frappe.core.page.background_jobs.background_jobs import get_info
 from frappe.utils.background_jobs import enqueue
 from datetime import datetime
 from erpnext.accounts.utils import get_fiscal_year
+from frappe.utils import comma_and
 
 class CDGSTR2BDataUploadTool(Document):
 	def validate(self):
 		json_data = frappe.get_file_json(frappe.local.site_path + self.cf_upload_gstr_2b_data)
+		return_period = json_data['data']['rtnprd']
+		existing_doc = frappe.db.get_value('CD GSTR 2B Data Upload Tool', {'cf_return_period': return_period}, 'name')
+		if existing_doc:
+			frappe.throw(_(f'Unable to proceed. Already another document {comma_and("""<a href="#Form/CD GSTR 2B Data Upload Tool/{0}">{1}</a>""".format(existing_doc, existing_doc))} uploaded for the return period {frappe.bold(return_period)}.'))
 		if not json_data['data']['gstin'] == self.cf_company_gstin:
 			frappe.throw(_(f'Invalid JSON. Company GSTIN mismatched with uploaded 2B data.'))
+
+	def before_save(self):
+		json_data = frappe.get_file_json(frappe.local.site_path + self.cf_upload_gstr_2b_data)
+		self.cf_return_period = json_data['data']['rtnprd']
 
 	def after_insert(self):
 		enqueued_jobs = [d.get("job_name") for d in get_info()]
