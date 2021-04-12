@@ -337,15 +337,15 @@ def link_documents(uploaded_doc_name):
 						])
 	pr_list = get_pr_list(doc_val[0][0], from_date, to_date)
 	for doc in gstr2b_list:
-		is_exactly_matched = frappe.db.get_value('CD GSTR 2B Entry', {'name': doc['name'],'cf_match_status': 'Exact Match'})
-		if not is_exactly_matched:
-			pr = get_match_status(doc, pr_list)
-			pr_list[:] = [doc for doc in pr_list if doc != pr]
-			if not pr:
-				frappe.db.set_value('CD GSTR 2B Entry', doc['name'], 'cf_match_status', 'Missing in PR')
-				frappe.db.set_value('CD GSTR 2B Entry', doc['name'], 'cf_reason', None)
-				frappe.db.set_value('CD GSTR 2B Entry', doc['name'], 'cf_purchase_invoice', None)
-				frappe.db.commit()
+		res = get_match_status(doc, pr_list)
+		if res:
+			update_match_status(doc, res)
+			pr_list[:] = [doc for doc in pr_list if doc != res[0]]
+		else:
+			frappe.db.set_value('CD GSTR 2B Entry', doc['name'], 'cf_match_status', 'Missing in PR')
+			frappe.db.set_value('CD GSTR 2B Entry', doc['name'], 'cf_reason', None)
+			frappe.db.set_value('CD GSTR 2B Entry', doc['name'], 'cf_purchase_invoice', None)
+			frappe.db.commit()
 	frappe.db.set_value('CD GSTR 2B Data Upload Tool', uploaded_doc_name, 'cf_is_matching_completed', 1)
 	frappe.db.commit()
 
@@ -362,7 +362,7 @@ def get_pr_list(company_gstin, from_date, to_date):
 						'bill_no as document_number',
 						'total as total_taxable_amount'])
 	for row in pi_doc_list:
-		is_linked = frappe.db.get_value('CD GSTR 2B Entry', {'cf_purchase_invoice': row['name'], 'cf_match_status': 'Exact Match'},'name')
+		is_linked = frappe.db.get_value('CD GSTR 2B Entry', {'cf_purchase_invoice': row['name']},'name')
 		if not is_linked:
 			row['document_type'] = 'Invoice'
 			pr_list.append(row.update(get_tax_details(row['name'])))
@@ -415,7 +415,7 @@ def get_match_status(gstr2b_doc, pr_list, amount_threshold = 1):
 	'sgst_amount',
 	'cess_amount'}
 	gstin_matched_pr_list = []
-	gstin_doctype_matched_list = []
+	gstin_and_doctype_matched_list = []
 	remaining_list = []
 	partial_match_list = []
 	probable_match_list = []
@@ -425,11 +425,11 @@ def get_match_status(gstr2b_doc, pr_list, amount_threshold = 1):
 			if not pr['document_type'] == gstr2b_doc['document_type']:
 				gstin_matched_pr_list.append(pr)
 			else:
-				gstin_doctype_matched_list.append(pr)
+				gstin_and_doctype_matched_list.append(pr)
 		else:
 			remaining_list.append(pr)
 
-	for pr in gstin_doctype_matched_list:
+	for pr in gstin_and_doctype_matched_list:
 		reason = []
 		count = 0
 		if pr['document_date'] == gstr2b_doc['document_date']:
@@ -446,8 +446,7 @@ def get_match_status(gstr2b_doc, pr_list, amount_threshold = 1):
 			else:
 				reason.append(param.replace('_',' ').title())
 		if count == 8:
-			update_match_status(gstr2b_doc, [pr, 'Exact Match', reason])
-			return pr
+			return [pr, 'Exact Match', reason]
 		elif count == 7:
 			partial_match_list.append([pr, count, reason])
 		else:
@@ -462,17 +461,14 @@ def get_match_status(gstr2b_doc, pr_list, amount_threshold = 1):
 			else:
 				continue
 		if best_partial_match:
-			update_match_status(gstr2b_doc, [best_partial_match[0][0], 'Partial Match', best_partial_match[0][2]])
-			return best_partial_match[0][0]
+			return [best_partial_match[0][0], 'Partial Match', best_partial_match[0][2]]
 		else:
-			update_match_status(gstr2b_doc, [partial_match_list[0][0], 'Partial Match', partial_match_list[0][2]])
-			return partial_match_list[0][0]
+			return [partial_match_list[0][0], 'Partial Match', partial_match_list[0][2]]
 
 	if gstin_matched_pr_list:
 		res = get_probable_match(gstin_matched_pr_list, gstr2b_doc, amount_params,'Document Type')
 		if len(res)==3:
-			update_match_status(gstr2b_doc, res)
-			return res[0]
+			return res
 	
 	if remaining_list:
 		probable_pr_list = []
@@ -482,8 +478,7 @@ def get_match_status(gstr2b_doc, pr_list, amount_threshold = 1):
 		if probable_pr_list:
 			res = get_probable_match(probable_pr_list, gstr2b_doc, amount_params, 'Supplier GSTIN')
 			if len(res)==3:
-				update_match_status(gstr2b_doc, res)
-				return res[0]
+				return res
 
 	if mismatch_list:
 		for row in mismatch_list[:]:
@@ -496,8 +491,7 @@ def get_match_status(gstr2b_doc, pr_list, amount_threshold = 1):
 				continue
 	if mismatch_list:
 		mismatch_list = sorted(mismatch_list, key=itemgetter(1))
-		update_match_status(gstr2b_doc, [mismatch_list[0][0], 'Mismatch', mismatch_list[0][2]])
-		return mismatch_list[0][0]['name']
+		return [mismatch_list[0][0], 'Mismatch', mismatch_list[0][2]]
 	return None
 
 
