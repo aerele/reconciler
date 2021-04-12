@@ -321,7 +321,7 @@ def link_documents(uploaded_doc_name):
 	from_date = add_months(to_date, month_threshold)
 	gstr2b_list = frappe.get_list('CD GSTR 2B Entry', 
 						filters={'cf_uploaded_via': uploaded_doc_name,
-						'cf_status': 'Pending'},
+						'cf_status': 'Pending', 'cf_purchase_invoice': ''},
 						fields=[
 						'name',
 						'cf_party_gstin as gstin',
