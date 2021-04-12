@@ -314,11 +314,6 @@ def link_documents(uploaded_doc_name):
 
 	return_period_year = int(doc_val[0][1][-4::])
 	return_period_month = int(doc_val[0][1][:2])
-	if return_period_month == 1:
-		return_period_month = 12
-		return_period_year-=1
-	else:
-		return_period_month-=1
 	to_date = last_day_of_month(return_period_year, return_period_month)
 	if not to_date:
 		frappe.throw(_(f'To date not found for the PR filters'))
