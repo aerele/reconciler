@@ -109,6 +109,7 @@ def create_gstr2b_entries(json_data, doc):
 		doc.reload()
 		frappe.db.set_value('CD GSTR 2B Data Upload Tool',doc.name,'cf_no_of_newly_created_entries', f"""<a href="#List/CD GSTR 2B Entry/List?cf_uploaded_via={doc.name}">{total_entries_created}</a>""")
 		frappe.db.commit()
+		link_documents(doc.name)
 	except:
 		traceback = frappe.get_traceback()
 		frappe.log_error(title = 'GSTR 2B Json Upload Error',message=traceback)		
@@ -350,6 +351,8 @@ def link_documents(uploaded_doc_name):
 				frappe.db.set_value('CD GSTR 2B Entry', doc['name'], 'cf_reason', None)
 				frappe.db.set_value('CD GSTR 2B Entry', doc['name'], 'cf_purchase_invoice', None)
 				frappe.db.commit()
+	frappe.db.set_value('CD GSTR 2B Data Upload Tool', uploaded_doc_name, 'cf_is_matching_completed', 1)
+	frappe.db.commit()
 
 	
 def get_pr_list(company_gstin, from_date, to_date):
@@ -558,3 +561,24 @@ def apply_approximation(gstr2b_invoice_no, pr_invoice_no):
 	if pr_invoice_no in gstr2b_invoice_no:
 		return True
 	return False
+
+@frappe.whitelist()
+def rematch_results(uploaded_doc_name):
+	job_name = uploaded_doc_name + 'Rematch Results'
+	enqueued_jobs = [d.get("job_name") for d in get_info()]
+	if job_name in enqueued_jobs:
+		frappe.msgprint(
+			_("Rematching already in progress. Please wait for sometime.")
+		)
+	else:
+		enqueue(
+			link_documents,
+			queue = "default",
+			timeout = 6000,
+			event = 'link_documents',
+			uploaded_doc_name = uploaded_doc_name,
+			job_name = job_name
+		)
+		frappe.msgprint(
+			_("Rematching job added to the queue. Please check after sometime.")
+		)

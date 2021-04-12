@@ -4,6 +4,18 @@
 frappe.ui.form.on('CD GSTR 2B Data Upload Tool', {
 	refresh: function(frm){
 		frm.trigger("show_summary");
+		if(frm.doc.cf_is_matching_completed){ 
+		frm.add_custom_button(("Rematch Results"), function() {
+			frm.trigger('rematch_results');
+		});
+	}
+	},
+  rematch_results: function(frm){
+    frappe.call({
+      method: "reconciler.reconciler.doctype.cd_gstr_2b_data_upload_tool.cd_gstr_2b_data_upload_tool.rematch_results",
+      freeze: true,
+      args: {uploaded_doc_name:frm.doc.name}
+    })
 	},
 	show_summary: function(frm) {
 		let total_taxable_amount = frm.doc.__onload.total_taxable_amount;

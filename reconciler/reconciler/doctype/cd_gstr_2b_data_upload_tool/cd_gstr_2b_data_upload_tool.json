@@ -14,7 +14,8 @@
   "section_break_6",
   "cf_no_of_newly_created_entries",
   "column_break_9",
-  "cf_no_of_entries_in_json"
+  "cf_no_of_entries_in_json",
+  "cf_is_matching_completed"
  ],
  "fields": [
   {
@@ -75,9 +76,16 @@
   {
    "fieldname": "column_break_9",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cf_is_matching_completed",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "Is Matching Completed",
+   "read_only": 1
   }
  ],
- "modified": "2021-04-11 22:41:54.537248",
+ "modified": "2021-04-12 11:04:07.458975",
  "modified_by": "Administrator",
  "module": "Reconciler",
  "name": "CD GSTR 2B Data Upload Tool",
