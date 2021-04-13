@@ -91,13 +91,11 @@ app_license = "MIT"
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-#	}
-# }
+doc_events = {
+	"Purchase Invoice":{
+		"on_change": "reconciler.reconciler.doctype.cd_gstr_2b_entry.cd_gstr_2b_entry.get_linked_2b"
+	}
+}
 
 # Scheduled Tasks
 # ---------------
