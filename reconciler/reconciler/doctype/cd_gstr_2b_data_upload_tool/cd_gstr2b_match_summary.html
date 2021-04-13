@@ -1,0 +1,23 @@
+<h5 style="margin-top: 0px;">{{ __("GSTR 2B Match Summary") }}</h5>
+<h6 style="margin: 15px 0px -10px 0px;">
+    {{ "Total Taxable Amount(₹) : " }}{{ total_taxable_amount }} &emsp; {{ "Total Tax Amount(₹) : " }}{{ total_tax_amount }}</h6>
+<table class="table table-bordered small">
+	<thead>
+		<tr>
+			<td style="width: 50%">{{ __("Match Type") }}</td>
+			<td style="width: 50%" class="text-right">{{ __("No of Documents") }}</td>
+		</tr>
+	</thead>
+	<tbody>
+        {% for row in data %}
+		<tr>
+			<td>
+				{{ row["match_type"] }}
+			</td>
+			<td class="text-right">
+				{{ row["total_docs"] }}
+			</td>
+		</tr>
+        {% endfor %}
+	</tbody>
+</table>

@@ -1,11 +1,11 @@
 {
- "actions": [],
  "autoname": "format:GSTR2B Upload on {creation}",
  "creation": "2021-04-08 18:50:49.784744",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "cf_return_period",
   "cf_company",
   "cf_upload_gstr_2b_data",
   "column_break_3",
@@ -13,10 +13,9 @@
   "cf_company_gstin",
   "section_break_6",
   "cf_no_of_newly_created_entries",
-  "cf_no_of_entries_in_json",
   "column_break_9",
-  "cf_no_of_updated_entries",
-  "cf_gstr_2b_updated_records"
+  "cf_no_of_entries_in_json",
+  "cf_is_matching_completed"
  ],
  "fields": [
   {
@@ -63,31 +62,30 @@
    "read_only": 1
   },
   {
-   "fieldname": "column_break_9",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "cf_no_of_updated_entries",
-   "fieldtype": "Int",
-   "label": "No of Updated Entries",
-   "read_only": 1
-  },
-  {
    "fieldname": "cf_upload_gstr_2b_data",
    "fieldtype": "Attach",
    "label": "Upload GSTR 2B Data",
    "reqd": 1
   },
   {
-   "fieldname": "cf_gstr_2b_updated_records",
-   "fieldtype": "Table",
-   "label": "GSTR 2B Updated Records",
-   "options": "CD GSTR 2B Updated Records"
+   "fieldname": "cf_return_period",
+   "fieldtype": "Data",
+   "label": "Return Period",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_9",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cf_is_matching_completed",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "Is Matching Completed",
+   "read_only": 1
   }
  ],
- "index_web_pages_for_search": 1,
- "links": [],
- "modified": "2021-04-08 19:01:37.191545",
+ "modified": "2021-04-12 11:04:07.458975",
  "modified_by": "Administrator",
  "module": "Reconciler",
  "name": "CD GSTR 2B Data Upload Tool",
