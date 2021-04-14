@@ -490,3 +490,38 @@ frappe.query_reports["CR GSTR 2B vs PR GSTIN Matching Tool"] = {
 			})
 	}
 }
+var get_unlinked_pr_list = function(gstr2b, from_date, to_date) {
+	var dialog = new frappe.ui.Dialog({
+		fields: [
+			{
+				label: __('Purchase Invoice'),
+				fieldname: 'purchase_invoice',
+				fieldtype: 'Link',
+				reqd: 1,
+				options: 'Purchase Invoice',
+				get_query: function() {
+					return {
+						query: "reconciler.reconciler.report.cr_gstr_2b_vs_pr_gstin_matching_tool.cr_gstr_2b_vs_pr_gstin_matching_tool.get_unlinked_pr_list",
+						filters: {
+							'gstr2b': gstr2b,
+							'from_date': from_date,
+							'to_date': to_date
+						}
+					};
+				}
+			}
+		],
+		primary_action: function() {
+			frappe.call('reconciler.reconciler.report.cr_gstr_2b_vs_pr_gstin_matching_tool.cr_gstr_2b_vs_pr_gstin_matching_tool.link_pr', {
+				gstr2b: gstr2b,
+				pr: dialog.fields_dict.purchase_invoice.value,
+				freeze: true
+			}).then(r => {
+				frappe.msgprint(__("Linked Successfully"));
+			});
+			dialog.hide();
+		},
+		primary_action_label: __('Link'),
+	});
+		dialog.show();
+	}

@@ -350,13 +350,17 @@ def link_documents(uploaded_doc_name):
 	frappe.db.commit()
 
 	
-def get_pr_list(company_gstin, from_date, to_date):
+def get_pr_list(company_gstin, from_date, to_date, supplier_gstin = None):
 	pr_list = []
+	filters = [['company_gstin' ,'=',company_gstin],
+				['posting_date' ,'>=',from_date],
+				['docstatus', '=', 1],
+				['posting_date' ,'<=',to_date]]
+	if supplier_gstin:
+		filters.append(['supplier_gstin' ,'=',supplier_gstin])
+	
 	pi_doc_list = frappe.get_list('Purchase Invoice', 
-						filters=[['company_gstin' ,'=',company_gstin],
-						['posting_date' ,'>=',from_date],
-						['docstatus', '=', 1],
-						['posting_date' ,'<=',to_date]],
+						filters= filters,
 						fields=['name','supplier_gstin as gstin',
 						'bill_date as document_date',
 						'bill_no as document_number',

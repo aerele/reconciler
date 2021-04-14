@@ -4,9 +4,9 @@
 from __future__ import unicode_literals
 import frappe, json
 from frappe import _
-from frappe.utils import comma_and
+from frappe.utils import comma_and, add_months
 from six import string_types
-from reconciler.reconciler.doctype.cd_gstr_2b_data_upload_tool.cd_gstr_2b_data_upload_tool import get_tax_details
+from reconciler.reconciler.doctype.cd_gstr_2b_data_upload_tool.cd_gstr_2b_data_upload_tool import *
 
 def execute(filters=None):
 	return MatchingTool(filters).run()
@@ -128,8 +128,8 @@ class MatchingTool(object):
 					"width": 200
 				},
 				{
-					"label": "Unlink",
-					"fieldname": "unlink",
+					"label": "Link/Unlink",
+					"fieldname": "link_or_unlink",
 					"fieldtype": "Button",
 					"width": 200
 				}]
@@ -139,9 +139,25 @@ class MatchingTool(object):
 		if self.filters['based_on'] == 'Return Period':
 			if 'return_period' in self.filters and self.filters['return_period']:
 				gstr2b_conditions = [['cf_return_period','=',self.filters['return_period']]]
+				month_threshold = -(frappe.db.get_single_value('CD GSTR 2B Settings', 'month_threshold'))
+				return_period_year = int(self.filters['return_period'][-4::])
+				return_period_month = int(self.filters['return_period'][:2])
+				to_date = last_day_of_month(return_period_year, return_period_month)
+				if not to_date:
+					frappe.throw(_(f'To date not found for the PR filters'))
+
+				from_date = add_months(to_date, month_threshold)
+
 			else:
 				frappe.throw(_("Please select return period"))
 		else:
+			if not self.filters['from_date']:
+				frappe.throw(_("Please select from date"))
+			if not self.filters['to_date']:
+				frappe.throw(_("Please select to date"))
+ 			
+			from_date = self.filters['from_date']
+			to_date = self.filters['to_date']
 			gstr2b_conditions = [['cf_document_date' ,'>=',self.filters['from_date']],
 			['cf_document_date' ,'<=',self.filters['to_date']]]
 
@@ -232,10 +248,10 @@ class MatchingTool(object):
 			for entry in gstr2b_entries:
 				bill_details = frappe.db.get_value("Purchase Invoice", {'name':entry['cf_purchase_invoice']}, ['bill_no', 'bill_date', 'rounded_total'])
 				button = f"""<Button class="btn btn-primary btn-xs center"  gstr2b = {entry["name"]} purchase_inv ={entry["cf_purchase_invoice"]} onClick='update_status(this.getAttribute("gstr2b"), this.getAttribute("purchase_inv"))'>View</a>"""
-				unlink = f"""<Button class="btn btn-primary btn-xs center"  gstr2b = {entry["name"]} status = {entry['cf_status']} onClick='unlink_pr(this.getAttribute("gstr2b"), this.getAttribute("status"))'>Unlink</a>"""
+				link_or_unlink = f"""<Button class="btn btn-primary btn-xs center"  gstr2b = {entry["name"]} status = {entry['cf_status']} onClick='unlink_pr(this.getAttribute("gstr2b"), this.getAttribute("status"))'>Unlink</a>"""
 				if 'Missing in PR' == entry['cf_match_status']:
 					button = f"""<Button class="btn btn-primary btn-xs center"  gstr2b = {entry["name"]} purchase_inv ={entry["cf_purchase_invoice"]} onClick='create_purchase_inv(this.getAttribute("gstr2b"), this.getAttribute("purchase_inv"))'>View</a>"""
-					unlink = None
+					link_or_unlink = f"""<Button class="btn btn-primary btn-xs center"  gstr2b = {entry["name"]}  from_date = {from_date} to_date = {to_date} onClick='get_unlinked_pr_list(this.getAttribute("gstr2b"), this.getAttribute("from_date"), this.getAttribute("to_date"))'>Link</a>"""
 				tax_diff = entry['cf_tax_amount']
 				if entry['cf_purchase_invoice']:
 					tax_diff = round(abs(entry['cf_tax_amount']- get_tax_details(entry['cf_purchase_invoice'])['total_tax_amount']), 2)
@@ -252,7 +268,7 @@ class MatchingTool(object):
 				'status': entry['cf_status'],
 				'view': button,
 				'gstr_2b': entry['name'],
-				'unlink': unlink})
+				'link_or_unlink': link_or_unlink})
 
 			if len(document_status) != 1 and 'Missing in 2B' in match_status and self.filters['based_on'] == 'Date':
 				if not 'transaction_type' in self.filters or \
@@ -358,3 +374,42 @@ def update_status(data, status):
 		if row and row['gstr_2b']:
 			frappe.db.set_value('CD GSTR 2B Entry', row['gstr_2b'], 'cf_status', status)
 	frappe.db.commit()
+
+@frappe.whitelist()
+def get_unlinked_pr_list(doctype, txt, searchfield, start, page_len, filters):
+	doc = frappe.get_doc('CD GSTR 2B Entry', filters['gstr2b'])	
+	pr_list = get_pr_list(doc.cf_company_gstin, filters['from_date'], filters['to_date'], supplier_gstin = doc.cf_party_gstin)
+	pr_list = [[entry['name']] for entry in pr_list if entry]
+	return pr_list
+
+@frappe.whitelist()
+def link_pr(gstr2b, pr):
+	gstr2b_doc = frappe.get_doc('CD GSTR 2B Entry', gstr2b)
+	pr_doc = frappe.get_doc('Purchase Invoice', pr)
+	gstr2b_doc_params = {
+		'name': gstr2b_doc.name,
+		'gstin': gstr2b_doc.cf_party_gstin,
+		'document_type': gstr2b_doc.cf_transaction_type,
+		'document_date': gstr2b_doc.cf_document_date,
+		'document_number': gstr2b_doc.cf_document_number,
+		'total_taxable_amount': gstr2b_doc.cf_taxable_amount,
+		'total_tax_amount': gstr2b_doc.cf_tax_amount,
+		'igst_amount': gstr2b_doc.cf_igst_amount,
+		'cgst_amount': gstr2b_doc.cf_cgst_amount,
+		'sgst_amount': gstr2b_doc.cf_sgst_amount,
+		'cess_amount': gstr2b_doc.cf_cess_amount
+	}
+
+	pr_doc_params = {'name': pr_doc.name,
+					'gstin': pr_doc.supplier_gstin,
+					'document_date': pr_doc.bill_date,
+					'document_type': 'Invoice',
+					'document_number': pr_doc.bill_no,
+					'total_taxable_amount': pr_doc.total}
+	
+	pr_doc_params.update(get_tax_details(pr))
+	res = get_match_status(gstr2b_doc_params, [pr_doc_params])
+	if res:
+		update_match_status(gstr2b_doc_params, res)
+	else:
+		frappe.throw(_("2B record data is not matched with the selected PR"))
