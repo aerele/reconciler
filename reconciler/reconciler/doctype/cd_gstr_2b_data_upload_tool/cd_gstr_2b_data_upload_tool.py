@@ -491,6 +491,8 @@ def get_match_status(gstr2b_doc, pr_list, amount_threshold = 1):
 			elif not row[0]['document_number'] == gstr2b_doc['document_number']:
 				if not apply_approximation(gstr2b_doc['document_number'], row[0]['document_number']):
 					mismatch_list.remove(row)
+				else:
+					row[2].remove('Document Number')
 			else:
 				continue
 	if mismatch_list:
