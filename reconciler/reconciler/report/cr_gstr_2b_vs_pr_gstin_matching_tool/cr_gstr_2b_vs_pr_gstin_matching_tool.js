@@ -442,6 +442,20 @@ frappe.query_reports["CR GSTR 2B vs PR GSTIN Matching Tool"] = {
 								frappe.throw(__('Unable to create invoice for transaction type CDN'));
 								return;
 							}
+							else{
+								frappe.new_doc("Purchase Invoice",{"company": gstr2b_doc.cf_company,
+									"bill_no" : gstr2b_doc.cf_document_number,
+									"supplier" : gstr2b_doc.cf_party,
+									"bill_date" : gstr2b_doc.cf_document_date,
+									"reverse_charge" : gstr2b_doc.cf_reverse_charge, 
+									"gst_category" : gstr2b_doc.cf_invoice_type,
+									"place_of_supply" : gstr2b_doc.cf_place_of_supply,
+									"grand_total" : gstr2b_doc.cf_total_amount,
+									"taxes_and_charges_added" : gstr2b_doc.cf_tax_amount,
+									"total" : gstr2b_doc.cf_taxable_amount,
+									"supplier_gstin" : gstr2b_doc.cf_party_gstin,
+									"company_gstin" :gstr2b_doc.cf_company_gstin});
+							}
 						}
 					}
 				});
