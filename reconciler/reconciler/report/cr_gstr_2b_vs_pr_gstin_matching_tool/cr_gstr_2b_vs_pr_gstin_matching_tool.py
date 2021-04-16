@@ -226,9 +226,6 @@ class MatchingTool(object):
 			if 'supplier' in self.filters:
 				suppliers = [self.filters['supplier']]
 
-			if not 'supplier_gstin' in self.filters:
-				suppliers = []
-
 			gstr2b_conditions.extend([
 			['cf_status', 'in', document_status],
 			['cf_match_status','in', match_status],
@@ -238,12 +235,12 @@ class MatchingTool(object):
 				gstr2b_conditions.append(['cf_transaction_type' ,'=', self.filters['transaction_type']])
 			if suppliers and not 'supplier_gstin' in self.filters:
 				gstr2b_conditions.append(['cf_party', 'in', suppliers])
-			
-			gstr2b_entries = frappe.db.get_all('CD GSTR 2B Entry', filters= gstr2b_conditions, fields =['cf_document_number','cf_document_date', 'cf_party_gstin',
-				'cf_purchase_invoice', 'cf_match_status', 'cf_reason', 'cf_status', 'cf_tax_amount','cf_total_amount', 'name'])
 
 			if 'supplier_gstin' in self.filters:
-				gstr2b_entries = [entry for entry in gstr2b_entries if entry['cf_party_gstin'] == self.filters['supplier_gstin']]
+				gstr2b_conditions.append(['cf_party_gstin', '=', self.filters['supplier_gstin']])
+
+			gstr2b_entries = frappe.db.get_all('CD GSTR 2B Entry', filters= gstr2b_conditions, fields =['cf_document_number','cf_document_date', 'cf_party_gstin',
+				'cf_purchase_invoice', 'cf_match_status', 'cf_reason', 'cf_status', 'cf_tax_amount','cf_total_amount', 'name'])
 
 			for entry in gstr2b_entries:
 				bill_details = frappe.db.get_value("Purchase Invoice", {'name':entry['cf_purchase_invoice']}, ['bill_no', 'bill_date', 'rounded_total'])
@@ -280,10 +277,10 @@ class MatchingTool(object):
 					if suppliers and not 'supplier_gstin' in self.filters:
 						pr_conditions.append(['supplier' ,'in', suppliers])
 					
-					pr_entries = frappe.db.get_all('Purchase Invoice', filters=pr_conditions, fields =['name', 'bill_no', 'bill_date', 'rounded_total', 'supplier_gstin'])
-
 					if 'supplier_gstin' in self.filters:
-						pr_entries = [entry for entry in pr_entries if entry['supplier_gstin'] == self.filters['supplier_gstin']]
+						pr_conditions.append(['supplier_gstin' ,'=', self.filters['supplier_gstin']])
+
+					pr_entries = frappe.db.get_all('Purchase Invoice', filters=pr_conditions, fields =['name', 'bill_no', 'bill_date', 'rounded_total', 'supplier_gstin'])
 
 					for inv in pr_entries:
 						is_linked = frappe.db.get_value('CD GSTR 2B Entry', {'cf_purchase_invoice': inv['name']}, 'name')
