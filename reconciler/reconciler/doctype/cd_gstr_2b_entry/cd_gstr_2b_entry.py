@@ -92,6 +92,7 @@ def rematch_result(doc_name):
 			doc.cf_purchase_invoice = None
 			doc.save(ignore_permissions=True)
 			doc.reload()
+			frappe.msgprint(_("Match status updated"))
 		else:
 			frappe.msgprint(_("Existing PR is the best match for this record"))
 
