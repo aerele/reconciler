@@ -1,5 +1,4 @@
 {
- "actions": [],
  "autoname": "format:GSTR2B-{YY}-{MM}-{####}",
  "creation": "2021-04-08 18:49:58.897498",
  "doctype": "DocType",
@@ -57,6 +56,7 @@
   {
    "fieldname": "cf_status",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Status",
    "read_only": 1
   },
@@ -137,7 +137,6 @@
   {
    "fieldname": "cf_document_date",
    "fieldtype": "Date",
-   "in_list_view": 1,
    "label": "Document Date",
    "read_only": 1
   },
@@ -253,6 +252,7 @@
   {
    "fieldname": "cf_match_status",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Match Status",
    "read_only": 1
   },
@@ -268,8 +268,9 @@
   },
   {
    "fieldname": "cf_uploaded_via",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "label": "Uploaded Via",
+   "options": "CD GSTR 2B Data Upload Tool",
    "read_only": 1
   },
   {
@@ -323,9 +324,7 @@
   }
  ],
  "in_create": 1,
- "index_web_pages_for_search": 1,
- "links": [],
- "modified": "2021-04-09 11:10:48.525491",
+ "modified": "2021-04-13 16:29:41.018723",
  "modified_by": "Administrator",
  "module": "Reconciler",
  "name": "CD GSTR 2B Entry",

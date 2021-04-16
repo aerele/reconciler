@@ -44,7 +44,7 @@ class CDGSTR2BDataUploadTool(Document):
 		json_data = frappe.get_file_json(frappe.local.site_path + self.cf_upload_gstr_2b_data)
 		return_period = json_data['data']['rtnprd']
 		existing_doc = frappe.db.get_value('CD GSTR 2B Data Upload Tool', {'cf_return_period': return_period}, 'name')
-		if existing_doc:
+		if existing_doc and not existing_doc == self.name:
 			frappe.throw(_(f'Unable to proceed. Already another document {comma_and("""<a href="#Form/CD GSTR 2B Data Upload Tool/{0}">{1}</a>""".format(existing_doc, existing_doc))} uploaded for the return period {frappe.bold(return_period)}.'))
 		if not json_data['data']['gstin'] == self.cf_company_gstin:
 			frappe.throw(_(f'Invalid JSON. Company GSTIN mismatched with uploaded 2B data.'))
@@ -231,7 +231,6 @@ def update_transaction_details(txn_key, txn_details, mappings, data, uploaded_do
 						if not tax_key in ['rt', 'txval']:
 							inv_tax_amt += tax_details[tax_key]
 						setattr(new_doc, invoice_item_field_mappings[tax_key], tax_details[tax_key])
-			setattr(new_doc, 'cf_uploaded_via', uploaded_doc.name)
 			setattr(new_doc, 'cf_other_fields', str(inv))
 			setattr(new_doc, 'cf_tax_amount', inv_tax_amt)
 			fiscal_year = get_fiscal_year(new_doc.cf_document_date)[0]
@@ -254,6 +253,8 @@ def update_transaction_details(txn_key, txn_details, mappings, data, uploaded_do
 				total_entries_created += 1
 				new_doc.save(ignore_permissions=True)
 				new_doc.reload()
+				frappe.db.set_value('CD GSTR 2B Entry', new_doc.name, 'cf_uploaded_via', uploaded_doc.name)
+				frappe.db.commit()
 	return uploaded_doc, total_entries_created
 
 def update_inv_items(inv, new_doc, invoice_item_field_mappings):
@@ -307,8 +308,7 @@ def get_supplier_by_gstin(gstin):
 	return supplier
 
 def link_documents(uploaded_doc_name):
-	# 12 months back PR record from the previous month of return preiod will be fetched
-	month_threshold = -12
+	month_threshold = - (frappe.db.get_single_value('CD GSTR 2B Settings', 'month_threshold'))
 	doc_val = frappe.db.get_values('CD GSTR 2B Data Upload Tool', filters={'name': uploaded_doc_name}, 
 			fieldname=["cf_company_gstin", "cf_return_period"])
 
@@ -350,13 +350,17 @@ def link_documents(uploaded_doc_name):
 	frappe.db.commit()
 
 	
-def get_pr_list(company_gstin, from_date, to_date):
+def get_pr_list(company_gstin, from_date, to_date, supplier_gstin = None):
 	pr_list = []
+	filters = [['company_gstin' ,'=',company_gstin],
+				['posting_date' ,'>=',from_date],
+				['docstatus', '=', 1],
+				['posting_date' ,'<=',to_date]]
+	if supplier_gstin:
+		filters.append(['supplier_gstin' ,'=',supplier_gstin])
+	
 	pi_doc_list = frappe.get_list('Purchase Invoice', 
-						filters=[['company_gstin' ,'=',company_gstin],
-						['posting_date' ,'>=',from_date],
-						['docstatus', '=', 1],
-						['posting_date' ,'<=',to_date]],
+						filters= filters,
 						fields=['name','supplier_gstin as gstin',
 						'bill_date as document_date',
 						'bill_no as document_number',
@@ -487,6 +491,8 @@ def get_match_status(gstr2b_doc, pr_list, amount_threshold = 1):
 			elif not row[0]['document_number'] == gstr2b_doc['document_number']:
 				if not apply_approximation(gstr2b_doc['document_number'], row[0]['document_number']):
 					mismatch_list.remove(row)
+				else:
+					row[2].remove('Document Number')
 			else:
 				continue
 	if mismatch_list:
