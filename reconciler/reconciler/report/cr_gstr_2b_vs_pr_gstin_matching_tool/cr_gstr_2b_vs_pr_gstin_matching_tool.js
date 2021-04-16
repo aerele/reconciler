@@ -248,26 +248,36 @@ frappe.query_reports["CR GSTR 2B vs PR GSTIN Matching Tool"] = {
 		return value;
 	},
 	"apply_filters": function(data) {
+		const query_string = frappe.utils.get_query_string(frappe.get_route_str());
+		const query_params = frappe.utils.get_query_params(query_string);
 		if (!data.supplier) return;
-	
-		frappe.route_options = {
-			"company": frappe.query_report.get_filter_value('company'),
-			"gst_state": frappe.query_report.get_filter_value('gst_state'),
-			"company_gstin": frappe.query_report.get_filter_value('company_gstin'),
-			"based_on": frappe.query_report.get_filter_value('based_on'),
-			"from_date": frappe.query_report.get_filter_value('from_date'),
-			"to_date": frappe.query_report.get_filter_value('to_date'),
-			"return_period": frappe.query_report.get_filter_value('return_period'),
-			"transaction_type" :frappe.query_report.get_filter_value('transaction_type')
-		};
-	
-		frappe.route_options["supplier"] = data.supplier
-		frappe.route_options["view_type"] = 'Document View'
-	
-		frappe.set_route("query-report", "CR GSTR 2B vs PR GSTIN Matching Tool");
+		if(!query_params.prepared_report_name){
+		frappe.query_report.set_filter_value('view_type', "Document View");
+		frappe.query_report.set_filter_value('supplier', data.supplier);
+		}
+		else{
+			frappe.route_options = {
+				  "company": frappe.query_report.get_filter_value('company'),
+				  "gst_state": frappe.query_report.get_filter_value('gst_state'),
+				  "company_gstin": frappe.query_report.get_filter_value('company_gstin'),
+				  "based_on": frappe.query_report.get_filter_value('based_on'),
+				  "from_date": frappe.query_report.get_filter_value('from_date'),
+				  "to_date": frappe.query_report.get_filter_value('to_date'),
+				  "return_period": frappe.query_report.get_filter_value('return_period'),
+				  "transaction_type" :frappe.query_report.get_filter_value('transaction_type')
+				};
+			  
+				frappe.route_options["supplier"] = data.supplier
+				frappe.route_options["view_type"] = 'Document View'
+			  
+				frappe.set_route("query-report", "CR GSTR 2B vs PR GSTIN Matching Tool")
+		}
 	},
 	after_datatable_render: table_instance => {
 		let data = table_instance.datamanager.data;
+		for (let row = 0; row < data.length; ++row) {
+			table_instance.style.setStyle(`.dt-row-${row} .dt-cell`, {backgroundColor: 'rgba(255,255,255);'});
+		}	
 		for (let row = 0; row < data.length; ++row) {
 			if(frappe.query_report.get_filter_value('view_type') == 'Document View'){
 			if (data[row]['match_status'] == 'Exact Match') {
