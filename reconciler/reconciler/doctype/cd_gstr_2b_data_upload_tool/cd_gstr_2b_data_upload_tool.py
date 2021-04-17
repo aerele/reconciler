@@ -387,7 +387,7 @@ def get_tax_details(doc_name):
 	for row in doc.taxes:
 		for accounts in gst_accounts.values():
 			if row.account_head in accounts:
-				if not type(accounts[-1]) == int:
+				if not type(accounts[-1]) == float:
 					accounts.append(0)
 				accounts[-1]+=row.tax_amount
 	for idx in range(len(account_head_fields)):
@@ -535,6 +535,8 @@ def update_match_status(gstr2b_doc, match_result):
 		setattr(doc, 'cf_purchase_invoice', match_result[0]['name'])
 	doc.cf_match_status = match_result[1]
 	doc.cf_reason = ','.join(match_result[2])
+	if match_result[1] == 'Exact Match':
+		doc.cf_status = 'Accepted'
 	doc.save(ignore_permissions = True)
 	doc.reload()
 

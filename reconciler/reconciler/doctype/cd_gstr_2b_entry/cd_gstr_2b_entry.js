@@ -11,9 +11,28 @@ frappe.ui.form.on('CD GSTR 2B Entry', {
 				frm.add_custom_button(__("Unlink PR"), function() {
 				 frm.trigger('unlink_pr');
 			 });}
+			 if(frm.doc.cf_transaction_type == 'Invoice' && !frm.doc.cf_purchase_invoice){ 
+				frm.add_custom_button(__("Create Invoice"), function() {
+				 frm.trigger('create_invoice');
+			 });}
 			frm.add_custom_button(__("Rematch result"), function() {
 			 frm.trigger('rematch_result');
 		 });}
+	},
+	create_invoice: function(frm){
+		frappe.new_doc("Purchase Invoice",{"company": frm.doc.cf_company,
+		"bill_no" : frm.doc.cf_document_number,
+		"supplier" : frm.doc.cf_party,
+		"bill_date" : frm.doc.cf_document_date,
+		"reverse_charge" : frm.doc.cf_reverse_charge, 
+		"gst_category" : frm.doc.cf_invoice_type,
+		"place_of_supply" : frm.doc.cf_place_of_supply,
+		"grand_total" : frm.doc.cf_total_amount,
+		"taxes_and_charges_added" : frm.doc.cf_tax_amount,
+		"total" : frm.doc.cf_taxable_amount,
+		"supplier_gstin" : frm.doc.cf_party_gstin,
+		"company_gstin" :frm.doc.cf_company_gstin});
+
 	},
 	link_supplier: function(frm){
 		frappe.call({
