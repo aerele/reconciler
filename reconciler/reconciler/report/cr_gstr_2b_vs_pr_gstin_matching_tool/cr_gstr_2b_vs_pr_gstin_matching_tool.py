@@ -61,78 +61,7 @@ class MatchingTool(object):
 				}
 				]
 		else:
-			self.columns = [{
-					"label": "2B Invoice No",
-					"fieldname": "2b_invoice_no",
-					"fieldtype": "Data",
-					"width": 200
-				},
-				{
-					"label": "2B Invoice Date",
-					"fieldname": "2b_invoice_date",
-					"fieldtype": "Data",
-					"width": 200
-				},
-				{
-					"label": "PR Invoice No",
-					"fieldname": "pr_invoice_no",
-					"fieldtype": "Data",
-					"width": 200
-				},
-				{
-					"label": "PR Invoice Date",
-					"fieldname": "pr_invoice_date",
-					"fieldtype": "Data",
-					"width": 200
-				},
-				{
-					"label": "2B Total Value",
-					"fieldname": "2b_total_value",
-					"fieldtype": "Float",
-					"width": 200
-				},
-				{
-					"label": "PR Total Value",
-					"fieldname": "pr_total_value",
-					"fieldtype": "Float",
-					"width": 200
-				},
-				{
-					"label": "Tax Difference",
-					"fieldname": "tax_difference",
-					"fieldtype": "Float",
-					"width": 200
-				},
-				{
-					"label": "Match Status",
-					"fieldname": "match_status",
-					"fieldtype": "Data",
-					"width": 200
-				},
-				{
-					"label": "Reason",
-					"fieldname": "reason",
-					"fieldtype": "Data",
-					"width": 200
-				},
-				{
-					"label": "Status",
-					"fieldname": "status",
-					"fieldtype": "Data",
-					"width": 200
-				},
-				{
-					"label": "View",
-					"fieldname": "view",
-					"fieldtype": "Button",
-					"width": 200
-				},
-				{
-					"label": "Link/Unlink",
-					"fieldname": "link_or_unlink",
-					"fieldtype": "Button",
-					"width": 200
-				}]
+			self.columns = []
 
 	def get_data(self):
 		data = []
@@ -236,14 +165,102 @@ class MatchingTool(object):
 			if suppliers and not 'supplier_gstin' in self.filters:
 				gstr2b_conditions.append(['cf_party', 'in', suppliers])
 
+			if len(suppliers) >1 and not 'supplier_gstin' in self.filters:
+				self.columns +=[{
+					"label": "Supplier",
+					"fieldname": "supplier",
+					"fieldtype": "Link",
+					"options": "Supplier",
+					"width": 200
+				},
+				{
+					"label": "GSTIN",
+					"fieldname": "gstin",
+					"fieldtype": "Data",
+					"width": 200
+				}]
+
 			if 'supplier_gstin' in self.filters:
 				gstr2b_conditions.append(['cf_party_gstin', '=', self.filters['supplier_gstin']])
 
+			self.columns += [{
+					"label": "2B Invoice No",
+					"fieldname": "2b_invoice_no",
+					"fieldtype": "Data",
+					"width": 200
+				},
+				{
+					"label": "PR Invoice No",
+					"fieldname": "pr_invoice_no",
+					"fieldtype": "Data",
+					"width": 200
+				},
+				{
+					"label": "2B Invoice Date",
+					"fieldname": "2b_invoice_date",
+					"fieldtype": "Data",
+					"width": 200
+				},
+				{
+					"label": "PR Invoice Date",
+					"fieldname": "pr_invoice_date",
+					"fieldtype": "Data",
+					"width": 200
+				},
+				{
+					"label": "2B Taxable Value",
+					"fieldname": "2b_taxable_value",
+					"fieldtype": "Float",
+					"width": 200
+				},
+				{
+					"label": "PR Taxable Value",
+					"fieldname": "pr_taxable_value",
+					"fieldtype": "Float",
+					"width": 200
+				},
+				{
+					"label": "Tax Difference",
+					"fieldname": "tax_difference",
+					"fieldtype": "Float",
+					"width": 200
+				},
+				{
+					"label": "Match Status",
+					"fieldname": "match_status",
+					"fieldtype": "Data",
+					"width": 200
+				},
+				{
+					"label": "Reason",
+					"fieldname": "reason",
+					"fieldtype": "Data",
+					"width": 200
+				},
+				{
+					"label": "Status",
+					"fieldname": "status",
+					"fieldtype": "Data",
+					"width": 200
+				},
+				{
+					"label": "View",
+					"fieldname": "view",
+					"fieldtype": "Button",
+					"width": 200
+				},
+				{
+					"label": "Link/Unlink",
+					"fieldname": "link_or_unlink",
+					"fieldtype": "Button",
+					"width": 200
+				}]
+
 			gstr2b_entries = frappe.db.get_all('CD GSTR 2B Entry', filters= gstr2b_conditions, fields =['cf_document_number','cf_document_date', 'cf_party_gstin',
-				'cf_purchase_invoice', 'cf_match_status', 'cf_reason', 'cf_status', 'cf_tax_amount','cf_total_amount', 'name'])
+				'cf_purchase_invoice', 'cf_match_status', 'cf_reason', 'cf_status', 'cf_tax_amount','cf_taxable_amount', 'name', 'cf_party'])
 
 			for entry in gstr2b_entries:
-				bill_details = frappe.db.get_value("Purchase Invoice", {'name':entry['cf_purchase_invoice']}, ['bill_no', 'bill_date', 'rounded_total'])
+				bill_details = frappe.db.get_value("Purchase Invoice", {'name':entry['cf_purchase_invoice']}, ['bill_no', 'bill_date', 'total'])
 				button = f"""<Button class="btn btn-primary btn-xs center"  gstr2b = {entry["name"]} purchase_inv ={entry["cf_purchase_invoice"]} onClick='update_status(this.getAttribute("gstr2b"), this.getAttribute("purchase_inv"))'>View</a>"""
 				link_or_unlink = f"""<Button class="btn btn-primary btn-xs center"  gstr2b = {entry["name"]} status = {entry['cf_status']} onClick='unlink_pr(this.getAttribute("gstr2b"), this.getAttribute("status"))'>Unlink</a>"""
 				if 'Missing in PR' == entry['cf_match_status']:
@@ -253,13 +270,15 @@ class MatchingTool(object):
 				if entry['cf_purchase_invoice']:
 					tax_diff = round(abs(entry['cf_tax_amount']- get_tax_details(entry['cf_purchase_invoice'])['total_tax_amount']), 2)
 				data.append({
+				'supplier': entry['cf_party'],
+				'gstin': entry['cf_party_gstin'],
 				'2b_invoice_no': entry['cf_document_number'],
 				'2b_invoice_date': entry['cf_document_date'],  
 				'pr_invoice_no': bill_details[0] if bill_details and bill_details[0] else None,
 				'pr_invoice_date': bill_details[1] if bill_details and bill_details[1] else None,
 				'tax_difference': tax_diff,
-				'2b_total_value': entry['cf_total_amount'],
-				'pr_total_value': bill_details[2] if bill_details and bill_details[2] else None,
+				'2b_taxable_value': entry['cf_taxable_amount'],
+				'pr_taxable_value': bill_details[2] if bill_details and bill_details[2] else None,
 				'match_status': entry['cf_match_status'], 
 				'reason':entry['cf_reason'],
 				'status': entry['cf_status'],
@@ -280,7 +299,7 @@ class MatchingTool(object):
 					if 'supplier_gstin' in self.filters:
 						pr_conditions.append(['supplier_gstin' ,'=', self.filters['supplier_gstin']])
 
-					pr_entries = frappe.db.get_all('Purchase Invoice', filters=pr_conditions, fields =['name', 'bill_no', 'bill_date', 'rounded_total', 'supplier_gstin'])
+					pr_entries = frappe.db.get_all('Purchase Invoice', filters=pr_conditions, fields =['name', 'bill_no', 'bill_date', 'total', 'supplier_gstin', 'supplier'])
 
 					for inv in pr_entries:
 						is_linked = frappe.db.get_value('CD GSTR 2B Entry', {'cf_purchase_invoice': inv['name']}, 'name')
@@ -288,13 +307,15 @@ class MatchingTool(object):
 							tax_diff = get_tax_details(inv['name'])['total_tax_amount']
 							button = f"""<Button class="btn btn-primary btn-xs center"  gstr2b = '' purchase_inv ={inv["name"]} onClick='render_summary(this.getAttribute("gstr2b"), this.getAttribute("purchase_inv"))'>View</a>"""
 							data.append({
+								'supplier': inv['supplier'],
+								'gstin': inv['supplier_gstin'],
 								'2b_invoice_no': None,
 								'2b_invoice_date': None,  
 								'pr_invoice_no': inv['bill_no'],
 								'pr_invoice_date': inv['bill_date'],
 								'tax_difference': tax_diff,
-								'2b_total_value': None,
-								'pr_total_value': inv['rounded_total'],
+								'2b_taxable_value': None,
+								'pr_taxable_value': inv['total'],
 								'match_status': 'Missing in 2B', 
 								'reason':None,
 								'status': None,
@@ -313,6 +334,7 @@ def return_period_query():
 def get_selection_details(gstr2b, purchase_inv):
 	tax_details = {}
 	other_details = {}
+	main_details = {}
 	gstr2b_doc = None
 	pi_doc = None
 	if gstr2b:
@@ -331,12 +353,16 @@ def get_selection_details(gstr2b, purchase_inv):
 							gstr2b_doc.cf_cess_amount]
 		
 		other_details['GSTR-2B'] = [
-							comma_and("""<a href="#Form/CD GSTR 2B Entry/{0}">{1}</a>""".format(gstr2b_doc.name, gstr2b_doc.name)),
 							gstr2b_doc.cf_document_number,
 							gstr2b_doc.cf_document_date,
 							gstr2b_doc.cf_place_of_supply,
 							gstr2b_doc.cf_reverse_charge,
-							gstr2b_doc.cf_return_period,
+							gstr2b_doc.cf_return_period]
+
+		main_details['GSTR-2B'] = [
+							gstr2b_doc.cf_party,
+							gstr2b_doc.cf_party_gstin,
+							gstr2b_doc.cf_transaction_type,
 							gstr2b_doc.cf_match_status,
 							gstr2b_doc.cf_reason if gstr2b_doc.cf_reason else '-',
 							gstr2b_doc.cf_status]
@@ -351,17 +377,22 @@ def get_selection_details(gstr2b, purchase_inv):
 		tax_details['PR'] = pi_details
 
 		other_details['PR'] = [
-							comma_and("""<a href="#Form/Purchase Invoice/{0}">{1}</a>""".format(pi_doc.name, pi_doc.name)),
 							pi_doc.bill_no,
 							pi_doc.bill_date,
 							pi_doc.place_of_supply,
 							pi_doc.reverse_charge,
-							f'{pi_doc.posting_date.month}/{pi_doc.posting_date.year}',
+							f'{pi_doc.posting_date.month}/{pi_doc.posting_date.year}']
+		main_details['PR'] = [
+							pi_doc.supplier,
+							pi_doc.supplier_gstin,
+							pi_doc.doctype,
 							'-',
 							'-' if is_linked else 'Missing in 2B',
-							'-'
-							]
-	return [tax_details, other_details]
+							'-']
+
+	return [comma_and("""<a href="#Form/CD GSTR 2B Entry/{0}">{1}</a>""".format(gstr2b_doc.name, gstr2b_doc.name)) if gstr2b_doc else '',
+			comma_and("""<a href="#Form/Purchase Invoice/{0}">{1}</a>""".format(pi_doc.name, pi_doc.name)) if pi_doc else '',
+			 tax_details, main_details, other_details]
 
 @frappe.whitelist()
 def update_status(data, status):
@@ -377,6 +408,13 @@ def get_unlinked_pr_list(doctype, txt, searchfield, start, page_len, filters):
 	doc = frappe.get_doc('CD GSTR 2B Entry', filters['gstr2b'])	
 	pr_list = get_pr_list(doc.cf_company_gstin, filters['from_date'], filters['to_date'], supplier_gstin = doc.cf_party_gstin)
 	pr_list = [[entry['name']] for entry in pr_list if entry]
+	return pr_list
+
+@frappe.whitelist()
+def get_suggested_pr_list(gstr2b, from_date, to_date):
+	doc = frappe.get_doc('CD GSTR 2B Entry', gstr2b)	
+	pr_list = get_pr_list(doc.cf_company_gstin, from_date, to_date, supplier_gstin = doc.cf_party_gstin)
+	pr_list = [{'pr': comma_and("""<a href="#Form/Purchase Invoice/{0}">{1}</a>""".format(entry['name'], entry['name']))} for entry in pr_list if entry]
 	return pr_list
 
 @frappe.whitelist()
