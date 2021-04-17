@@ -184,17 +184,16 @@ frappe.query_reports["CR GSTR 2B vs PR GSTIN Matching Tool"] = {
 				frappe.throw(__('This action is allowed only for the document view type'));
 				return;
 			}
-			var selected_rows = [];
-		let is_selected = false;
-			$('.dt-scrollable').find(":input[type=checkbox]").each((idx, row) => {
-				if(row.checked){
-					is_selected = true;
-					selected_rows.push({'gstr_2b':frappe.query_report.data[idx]['gstr_2b']});
-				}
-			});
-			if(is_selected == false)
+		var selected_rows = [];
+		let indexes = query_report.datatable.rowmanager.getCheckedRows();
+		for (let row = 0; row < indexes.length; ++row) {
+			if(query_report.data[indexes[row]]['match_status']!='Missing in 2B'){
+			selected_rows.push({'gstr_2b':query_report.data[indexes[row]]['gstr_2b']});
+		}
+		}
+			if($.isEmptyObject(selected_rows))
 			{
-				frappe.throw(__("Please select rows to update status"));
+				frappe.throw(__("Please select rows to update status. Also, make sure that you have not selected any row of match status Missing in 2B."));
 				return
 			}
 			else{
@@ -212,19 +211,18 @@ frappe.query_reports["CR GSTR 2B vs PR GSTIN Matching Tool"] = {
 				frappe.throw(__('This action is allowed only for the document view type'));
 				return;
 			}
-			var selected_rows = [];
-			let is_selected = false;
-				$('.dt-scrollable').find(":input[type=checkbox]").each((idx, row) => {
-					if(row.checked){
-						is_selected = true;
-						selected_rows.push({'gstr_2b':frappe.query_report.data[idx]['gstr_2b']});
-					}
-				});
-				if(is_selected == false)
-				{
-					frappe.throw(__("Please select rows to update status"));
-					return
-				}
+		var selected_rows = [];
+		let indexes = query_report.datatable.rowmanager.getCheckedRows();
+		for (let row = 0; row < indexes.length; ++row) {
+			if(query_report.data[indexes[row]]['match_status']!='Missing in 2B'){
+			selected_rows.push({'gstr_2b':query_report.data[indexes[row]]['gstr_2b']});
+		}
+		}
+			if($.isEmptyObject(selected_rows))
+			{
+				frappe.throw(__("Please select rows to update status. Also, make sure that you have not selected any row of match status Missing in 2B."));
+				return
+			}
 				else{
 				frappe.call('reconciler.reconciler.report.cr_gstr_2b_vs_pr_gstin_matching_tool.cr_gstr_2b_vs_pr_gstin_matching_tool.update_status', {
 					data: selected_rows,
@@ -287,11 +285,44 @@ frappe.query_reports["CR GSTR 2B vs PR GSTIN Matching Tool"] = {
 				table_instance.style.setStyle(`.dt-row-${row} .dt-cell`, {backgroundColor: 'rgba(0,255,255);'});
 			}
 		}
+		if(frappe.query_report.get_filter_value('view_type') == 'Supplier View'){
+			if (data[row]['total_pending_documents'] == 0 && data[row]['total_2b']!=0) {
+				table_instance.style.setStyle(`.dt-row-${row} .dt-cell`, {backgroundColor: 'rgba(0,255,255);'});
+			}
+		}
 		table_instance.style.setStyle(`.dt-scrollable`, {height: '600px;'});
 	}
 	}
 }
-	var render = function(tax_details, other_details, dialog) {
+	var render = function(render_details, dialog) {
+		let gstr2b = render_details[0];
+		let pr = render_details[1];
+		let tax_details = render_details[2];
+		let main_details = render_details[3];
+		let other_details = render_details[4];
+		let link_details = ``
+		if (pr && gstr2b){
+			link_details += `
+			<div>
+			<h3 style="text-align:left;float:left;">${gstr2b}</h3> 
+			<h3 style="text-align:right;float:right;">${pr}</h3> 
+			</div>
+			`
+		}
+		if (pr && !gstr2b){
+			link_details += `
+			<div>
+			<h3 style="text-align:left;float:left;">${pr}</h3> 
+			</div>
+			`
+		}
+		if (!pr && gstr2b){
+			link_details += `
+			<div>
+			<h3 style="text-align:left;float:left;">${gstr2b}</h3> 
+			</div>
+			`
+		}
 		let tax_details_summary = () => {
 			let summary = ``
 			$.each(tax_details, function(i, d) {
@@ -306,6 +337,7 @@ frappe.query_reports["CR GSTR 2B vs PR GSTIN Matching Tool"] = {
 			});
 			return `
 				<div>
+				${link_details}
 					<table class="table table-bordered">
 						<tr>
 							<th width="20%">${__('Data Source')}</th>
@@ -339,12 +371,38 @@ frappe.query_reports["CR GSTR 2B vs PR GSTIN Matching Tool"] = {
 					<table class="table table-bordered">
 						<tr>
 							<th width="20%">${__('Data Source')}</th>
-							<th width="10%">${__('Doc Link')}</th>
 							<th width="10%">${__('Doc No')}</th>
 							<th width="10%">${__('Date')}</th>
 							<th width="10%">${__('POS')}</th>
 							<th width="10%">${__('Reverse Charge')}</th>
 							<th width="10%">${__('Return Period')}</th>
+						</tr>
+						${summary}
+					</table>
+				</div>
+			`;
+		}
+
+		let main_details_summary = () => {
+			let summary = ``
+			$.each(main_details, function(i, d) {
+				summary+=`
+					<tr>
+						<td>${i}</td>`
+				for (let key in d) {
+					summary+=`
+						<td>${d[key]}</td>`
+				}
+				summary+=`</tr>`
+			});
+			return `
+				<div>
+					<table class="table table-bordered">
+						<tr>
+							<th width="20%">${__('Data Source')}</th>
+							<th width="20%">${__('Supplier')}</th>
+							<th width="20%">${__('GSTIN')}</th>
+							<th width="10%">${__('Document Type')}</th>
 							<th width="10%">${__('Match Status')}</th>
 							<th width="10%">${__('Reason')}</th>
 							<th width="10%">${__('Docstatus')}</th>
@@ -356,6 +414,7 @@ frappe.query_reports["CR GSTR 2B vs PR GSTIN Matching Tool"] = {
 		}
 		let html = `
 			${tax_details_summary()}
+			${main_details_summary()}
 			${other_details_summary()}
 		`;
 	
@@ -378,7 +437,7 @@ frappe.query_reports["CR GSTR 2B vs PR GSTIN Matching Tool"] = {
 			show_tax: 1,
 			freeze: true
 		}).then(r => {
-			this.render(r.message[0], r.message[1], dialog);
+			this.render(r.message, dialog);
 		});
 		dialog.get_field('preview_html').html('Loading...');
 		dialog.show();
@@ -419,7 +478,7 @@ frappe.query_reports["CR GSTR 2B vs PR GSTIN Matching Tool"] = {
 			show_tax: 1,
 			freeze: true
 		}).then(r => {
-			this.render(r.message[0], r.message[1], dialog);
+			this.render(r.message, dialog);
 		});
 		dialog.get_field('preview_html').html('Loading...');
 		dialog.show();
@@ -479,7 +538,7 @@ frappe.query_reports["CR GSTR 2B vs PR GSTIN Matching Tool"] = {
 			show_tax: 1,
 			freeze: true
 		}).then(r => {
-			this.render(r.message[0], r.message[1], dialog);
+			this.render(r.message, dialog);
 		});
 		dialog.get_field('preview_html').html('Loading...');
 		dialog.show();
@@ -515,37 +574,66 @@ frappe.query_reports["CR GSTR 2B vs PR GSTIN Matching Tool"] = {
 	}
 }
 var get_unlinked_pr_list = function(gstr2b, from_date, to_date) {
-	var dialog = new frappe.ui.Dialog({
-		fields: [
-			{
-				label: __('Purchase Invoice'),
-				fieldname: 'purchase_invoice',
-				fieldtype: 'Link',
-				reqd: 1,
-				options: 'Purchase Invoice',
-				get_query: function() {
-					return {
-						query: "reconciler.reconciler.report.cr_gstr_2b_vs_pr_gstin_matching_tool.cr_gstr_2b_vs_pr_gstin_matching_tool.get_unlinked_pr_list",
-						filters: {
-							'gstr2b': gstr2b,
-							'from_date': from_date,
-							'to_date': to_date
+	let pr_list = [];
+	frappe.call('reconciler.reconciler.report.cr_gstr_2b_vs_pr_gstin_matching_tool.cr_gstr_2b_vs_pr_gstin_matching_tool.get_suggested_pr_list', {
+		gstr2b: gstr2b,
+		from_date: from_date,
+		to_date: to_date
+	}).then(r => {
+		if(r.message){
+			var dialog = new frappe.ui.Dialog({
+				fields: [
+					{fieldname: 'pr_list', fieldtype: 'Table', label: __('Suggested PR(s)'),data: pr_list,
+					 cannot_add_rows: true,
+						fields: [
+							{
+								fieldtype:'Read Only',
+								fieldname:'pr',
+								label: __('PR'),
+								in_list_view:1,
+								read_only:1
+							}
+						]
+					},
+					{
+						label: __('Purchase Invoice'),
+						fieldname: 'purchase_invoice',
+						fieldtype: 'Link',
+						reqd: 1,
+						options: 'Purchase Invoice',
+						get_query: function() {
+							return {
+								query: "reconciler.reconciler.report.cr_gstr_2b_vs_pr_gstin_matching_tool.cr_gstr_2b_vs_pr_gstin_matching_tool.get_unlinked_pr_list",
+								filters: {
+									'gstr2b': gstr2b,
+									'from_date': from_date,
+									'to_date': to_date
+								}
+							};
 						}
-					};
-				}
-			}
-		],
-		primary_action: function() {
-			frappe.call('reconciler.reconciler.report.cr_gstr_2b_vs_pr_gstin_matching_tool.cr_gstr_2b_vs_pr_gstin_matching_tool.link_pr', {
-				gstr2b: gstr2b,
-				pr: dialog.fields_dict.purchase_invoice.value,
-				freeze: true
-			}).then(r => {
-				frappe.msgprint(__("Linked Successfully"));
+					}
+				],
+				primary_action: function() {
+					frappe.call('reconciler.reconciler.report.cr_gstr_2b_vs_pr_gstin_matching_tool.cr_gstr_2b_vs_pr_gstin_matching_tool.link_pr', {
+						gstr2b: gstr2b,
+						pr: dialog.fields_dict.purchase_invoice.value,
+						freeze: true
+					}).then(r => {
+						frappe.msgprint(__("Linked Successfully"));
+					});
+					dialog.hide();
+				},
+				primary_action_label: __('Link'),
 			});
-			dialog.hide();
-		},
-		primary_action_label: __('Link'),
-	});
-		dialog.show();
-	}
+			r.message.forEach(d => {
+					pr_list.push(d);
+				});
+			dialog.fields_dict.pr_list.grid.refresh();
+			$(dialog.wrapper.find('.modal-body')).show();
+			dialog.show();
+			}
+		else{
+			frappe.throw(__("No PR found"));
+			return
+		}
+	})};
