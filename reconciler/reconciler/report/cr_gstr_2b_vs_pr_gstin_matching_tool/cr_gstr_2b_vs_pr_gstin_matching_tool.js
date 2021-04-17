@@ -272,15 +272,15 @@ frappe.query_reports["CR GSTR 2B vs PR GSTIN Matching Tool"] = {
 		for (let row = 0; row < data.length; ++row) {
 			if(frappe.query_report.get_filter_value('view_type') == 'Document View'){
 			if (data[row]['match_status'] == 'Exact Match') {
-					table_instance.style.setStyle(`.dt-row-${row} .dt-cell`, {backgroundColor: 'rgba(37,220,2,0.2);'});
+					table_instance.style.setStyle(`.dt-row-${row} .dt-cell`, {backgroundColor: 'rgba(135,206,250);'});
 				}
 			if (data[row]['status'] == 'Accepted') {
-				table_instance.style.setStyle(`.dt-row-${row} .dt-cell`, {backgroundColor: 'rgba(0,255,255);'});
+				table_instance.style.setStyle(`.dt-row-${row} .dt-cell`, {backgroundColor: 'rgba(37,220,2,0.2);'});
 			}
 		}
 		if(frappe.query_report.get_filter_value('view_type') == 'Supplier View'){
 			if (data[row]['total_pending_documents'] == 0 && data[row]['total_2b']!=0) {
-				table_instance.style.setStyle(`.dt-row-${row} .dt-cell`, {backgroundColor: 'rgba(0,255,255);'});
+				table_instance.style.setStyle(`.dt-row-${row} .dt-cell`, {backgroundColor: 'rgba(37,220,2,0.2);'});
 			}
 		}
 		table_instance.style.setStyle(`.dt-scrollable`, {height: '600px;'});
