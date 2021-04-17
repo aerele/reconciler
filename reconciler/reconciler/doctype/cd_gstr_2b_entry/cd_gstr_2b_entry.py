@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import  _
 from frappe.model.document import Document
-from frappe.utils import add_months, comma_and
+from frappe.utils import add_months, comma_and, getdate, formatdate
 from erpnext.regional.india.utils import get_gst_accounts
 from reconciler.reconciler.doctype.cd_gstr_2b_data_upload_tool.cd_gstr_2b_data_upload_tool import *
 from frappe.utils.user import get_users_with_role
@@ -27,11 +27,24 @@ def link_supplier(doc_name):
 @frappe.whitelist()
 def unlink_pr(doc_name):
 	doc = frappe.get_doc('CD GSTR 2B Entry', doc_name)
-	if doc.cf_status == 'Accepted':
-		user = frappe.session.user
-		if not user in get_users_with_role("Accounts Admin") and user != 'Administrator':
-			frappe.throw(_("You do not have enough permission to do this action."))
+	user = frappe.session.user
+	is_enabled = frappe.db.get_value('CD GSTR 2B Settings', None, 'enable_account_freezing')
+	acc_settings = frappe.db.get_values('Accounts Settings', None, ['acc_frozen_upto', 'frozen_accounts_modifier'])
+	
+	if doc.cf_status == 'Accepted' and is_enabled:
+		if not user in get_users_with_role(acc_settings[0][1]) and user!='Administrator':
+			if getdate(doc.cf_document_date) <= getdate(acc_settings[0][0]):
+				frappe.throw(_("You are not authorized to update entries before {0}").format(formatdate(acc_settings[0][0])))
+			else:
+				frappe.throw(_("You do not have enough permission to do this action."))
 			return
+	
+	if doc.cf_status == 'Pending' and is_enabled:
+		if getdate(doc.cf_document_date) <= getdate(acc_settings[0][0]) and \
+			not user in get_users_with_role(acc_settings[0][1])and user!='Administrator':
+			frappe.throw(_("You are not authorized to update entries before {0}").format(formatdate(acc_settings[0][0])))
+			return
+
 	doc.cf_match_status = None
 	doc.cf_reason = None
 	doc.cf_status = 'Pending'

@@ -4,9 +4,10 @@
 from __future__ import unicode_literals
 import frappe, json
 from frappe import _
-from frappe.utils import comma_and, add_months
+from frappe.utils import comma_and, add_months, getdate
 from six import string_types
 from reconciler.reconciler.doctype.cd_gstr_2b_data_upload_tool.cd_gstr_2b_data_upload_tool import *
+from frappe.utils.user import get_users_with_role
 
 def execute(filters=None):
 	return MatchingTool(filters).run()
@@ -398,10 +399,35 @@ def get_selection_details(gstr2b, purchase_inv):
 def update_status(data, status):
 	if isinstance(data, string_types):
 		data = json.loads(data)
+	forbidden_doc_list = []
+	allow_user = True
+	user = frappe.session.user
+	is_enabled = frappe.db.get_value('CD GSTR 2B Settings', None, 'enable_account_freezing')
+	acc_settings = frappe.db.get_values('Accounts Settings', None, ['acc_frozen_upto', 'frozen_accounts_modifier'])
+	if not user in get_users_with_role(acc_settings[0][1]) and user != 'Administrator' and is_enabled:
+		allow_user = False
+	
 	for row in data:
 		if row and row['gstr_2b']:
-			frappe.db.set_value('CD GSTR 2B Entry', row['gstr_2b'], 'cf_status', status)
-	frappe.db.commit()
+			doc = frappe.get_doc('CD GSTR 2B Entry', row['gstr_2b'])
+			if doc.cf_status == 'Accepted' and not allow_user and is_enabled:
+				if getdate(doc.cf_document_date) <= getdate(acc_settings[0][0]):
+					forbidden_doc_list.append(comma_and("""<a href="#Form/CD GSTR 2B Entry/{0}">{1}</a>""".format(row['gstr_2b'], row['gstr_2b'])))
+				else:
+					forbidden_doc_list.append(comma_and("""<a href="#Form/CD GSTR 2B Entry/{0}">{1}</a>""".format(row['gstr_2b'], row['gstr_2b'])))
+				continue
+			if doc.cf_status == 'Pending' and not allow_user and is_enabled:
+				if getdate(doc.cf_document_date) <= getdate(acc_settings[0][0]):
+					forbidden_doc_list.append(comma_and("""<a href="#Form/CD GSTR 2B Entry/{0}">{1}</a>""".format(row['gstr_2b'], row['gstr_2b'])))
+					continue
+
+			doc.cf_status = status
+			doc.save(ignore_permissions = True)
+			doc.reload()
+			frappe.db.commit()
+	if forbidden_doc_list:
+		forbidden_docs = ','.join(forbidden_doc_list)
+		frappe.throw(_(f"You are not authorized to update entries {forbidden_docs}"))
 
 @frappe.whitelist()
 def get_unlinked_pr_list(doctype, txt, searchfield, start, page_len, filters):
