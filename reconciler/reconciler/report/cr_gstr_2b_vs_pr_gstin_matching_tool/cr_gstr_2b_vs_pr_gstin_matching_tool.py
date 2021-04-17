@@ -27,7 +27,7 @@ class MatchingTool(object):
 					"label": "GSTIN",
 					"fieldname": "gstin",
 					"fieldtype": "Data",
-					"width": 200
+					"width": 140
 				},
 				{
 					"label": "Supplier",
@@ -40,25 +40,25 @@ class MatchingTool(object):
 					"label": "Tax Difference",
 					"fieldname": "tax_difference",
 					"fieldtype": "Float",
-					"width": 200
+					"width": 100
 				},
 				{
 					"label": "Total 2B",
 					"fieldname": "total_2b",
 					"fieldtype": "Int",
-					"width": 200
+					"width": 80
 				},
 				{
 					"label": "Total PR",
 					"fieldname": "total_pr",
 					"fieldtype": "Int",
-					"width": 200
+					"width": 80
 				},
 				{
 					"label": "Total Pending Documents",
 					"fieldname": "total_pending_documents",
 					"fieldtype": "Int",
-					"width": 200
+					"width": 100
 				}
 				]
 		else:
@@ -178,7 +178,7 @@ class MatchingTool(object):
 					"label": "GSTIN",
 					"fieldname": "gstin",
 					"fieldtype": "Data",
-					"width": 200
+					"width": 140
 				}]
 
 			if 'supplier_gstin' in self.filters:
@@ -188,67 +188,67 @@ class MatchingTool(object):
 					"label": "2B Invoice No",
 					"fieldname": "2b_invoice_no",
 					"fieldtype": "Data",
-					"width": 200
+					"width": 150
 				},
 				{
 					"label": "PR Invoice No",
 					"fieldname": "pr_invoice_no",
 					"fieldtype": "Data",
-					"width": 200
+					"width": 80
 				},
 				{
 					"label": "2B Invoice Date",
 					"fieldname": "2b_invoice_date",
 					"fieldtype": "Data",
-					"width": 200
+					"width": 75
 				},
 				{
 					"label": "PR Invoice Date",
 					"fieldname": "pr_invoice_date",
 					"fieldtype": "Data",
-					"width": 200
+					"width": 75
 				},
 				{
 					"label": "2B Taxable Value",
 					"fieldname": "2b_taxable_value",
 					"fieldtype": "Float",
-					"width": 200
+					"width": 100
 				},
 				{
 					"label": "PR Taxable Value",
 					"fieldname": "pr_taxable_value",
 					"fieldtype": "Float",
-					"width": 200
+					"width": 100
 				},
 				{
 					"label": "Tax Difference",
 					"fieldname": "tax_difference",
 					"fieldtype": "Float",
-					"width": 200
+					"width": 100
 				},
 				{
 					"label": "Match Status",
 					"fieldname": "match_status",
 					"fieldtype": "Data",
-					"width": 200
+					"width": 95
 				},
 				{
 					"label": "Reason",
 					"fieldname": "reason",
 					"fieldtype": "Data",
-					"width": 200
+					"width": 100
 				},
 				{
 					"label": "Status",
 					"fieldname": "status",
 					"fieldtype": "Data",
-					"width": 200
+					"width": 70
 				},
 				{
 					"label": "PR Actions",
 					"fieldname": "pr_actions",
 					"fieldtype": "HTML",
-					"width": 200
+					"width": 100
 				}]
 
 			gstr2b_entries = frappe.db.get_all('CD GSTR 2B Entry', filters= gstr2b_conditions, fields =['cf_document_number','cf_document_date', 'cf_party_gstin',
