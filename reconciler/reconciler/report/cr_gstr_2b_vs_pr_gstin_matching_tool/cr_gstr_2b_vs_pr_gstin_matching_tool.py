@@ -245,15 +245,9 @@ class MatchingTool(object):
 					"width": 200
 				},
 				{
-					"label": "View",
-					"fieldname": "view",
-					"fieldtype": "Button",
-					"width": 200
-				},
-				{
-					"label": "Link/Unlink",
-					"fieldname": "link_or_unlink",
-					"fieldtype": "Button",
+					"label": "PR Actions",
+					"fieldname": "pr_actions",
+					"fieldtype": "HTML",
 					"width": 200
 				}]
 
@@ -262,11 +256,15 @@ class MatchingTool(object):
 
 			for entry in gstr2b_entries:
 				bill_details = frappe.db.get_value("Purchase Invoice", {'name':entry['cf_purchase_invoice']}, ['bill_no', 'bill_date', 'total'])
-				button = f"""<Button class="btn btn-primary btn-xs center"  gstr2b = {entry["name"]} purchase_inv ={entry["cf_purchase_invoice"]} onClick='update_status(this.getAttribute("gstr2b"), this.getAttribute("purchase_inv"))'>View</a>"""
-				link_or_unlink = f"""<Button class="btn btn-primary btn-xs center"  gstr2b = {entry["name"]} status = {entry['cf_status']} onClick='unlink_pr(this.getAttribute("gstr2b"), this.getAttribute("status"))'>Unlink</a>"""
+				button = f"""
+				<div>
+				<Button class="btn btn-primary btn-xs left"  style="margin: 2px;" gstr2b = {entry["name"]} purchase_inv ={entry["cf_purchase_invoice"]} onClick='update_status(this.getAttribute("gstr2b"), this.getAttribute("purchase_inv"))'>View</a>
+				<Button class="btn btn-primary btn-xs right" style="margin: 2px;" gstr2b = {entry["name"]} status = {entry['cf_status']} onClick='unlink_pr(this.getAttribute("gstr2b"), this.getAttribute("status"))'>Unlink</a>
+				</div>"""
 				if 'Missing in PR' == entry['cf_match_status']:
-					button = f"""<Button class="btn btn-primary btn-xs center"  gstr2b = {entry["name"]} purchase_inv ={entry["cf_purchase_invoice"]} onClick='create_purchase_inv(this.getAttribute("gstr2b"), this.getAttribute("purchase_inv"))'>View</a>"""
-					link_or_unlink = f"""<Button class="btn btn-primary btn-xs center"  gstr2b = {entry["name"]}  from_date = {from_date} to_date = {to_date} onClick='get_unlinked_pr_list(this.getAttribute("gstr2b"), this.getAttribute("from_date"), this.getAttribute("to_date"))'>Link</a>"""
+					button = f"""<div><Button class="btn btn-primary btn-xs left"  style="margin: 2px;" gstr2b = {entry["name"]} purchase_inv ={entry["cf_purchase_invoice"]} onClick='create_purchase_inv(this.getAttribute("gstr2b"), this.getAttribute("purchase_inv"))'>View</a>
+					<Button class="btn btn-primary btn-xs right" style="margin: 2px;"  gstr2b = {entry["name"]}  from_date = {from_date} to_date = {to_date} onClick='get_unlinked_pr_list(this.getAttribute("gstr2b"), this.getAttribute("from_date"), this.getAttribute("to_date"))'>Link</a>
+					</div>"""
 				tax_diff = entry['cf_tax_amount']
 				if entry['cf_purchase_invoice']:
 					tax_diff = round(abs(entry['cf_tax_amount']- get_tax_details(entry['cf_purchase_invoice'])['total_tax_amount']), 2)
@@ -283,9 +281,8 @@ class MatchingTool(object):
 				'match_status': entry['cf_match_status'], 
 				'reason':entry['cf_reason'],
 				'status': entry['cf_status'],
-				'view': button,
-				'gstr_2b': entry['name'],
-				'link_or_unlink': link_or_unlink})
+				'pr_actions': button,
+				'gstr_2b': entry['name']})
 
 			if len(document_status) != 1 and 'Missing in 2B' in match_status and self.filters['based_on'] == 'Date':
 				if not 'transaction_type' in self.filters or \
@@ -320,7 +317,7 @@ class MatchingTool(object):
 								'match_status': 'Missing in 2B', 
 								'reason':None,
 								'status': None,
-								'view': button})
+								'pr_actions': button})
 		self.data = data
 
 @frappe.whitelist()
