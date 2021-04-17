@@ -245,31 +245,24 @@ frappe.query_reports["CR GSTR 2B vs PR GSTIN Matching Tool"] = {
 		value = default_formatter(value, row, column, data);
 		return value;
 	},
-	"apply_filters": function(data) {
+	"apply_filters": async function(data) {
+		var return_period = frappe.query_report.get_filter_value('return_period');
 		const query_string = frappe.utils.get_query_string(frappe.get_route_str());
 		const query_params = frappe.utils.get_query_params(query_string);
+	if (!return_period && query_params.prepared_report_name){
+			return_period = await get_return_period(query_params);
+		}
 		if (!data.supplier) return;
-		if(!query_params.prepared_report_name){
-		frappe.query_report.set_filter_value('view_type', "Document View");
-		frappe.query_report.set_filter_value('supplier', data.supplier);
-		}
-		else{
-			frappe.route_options = {
-				  "company": frappe.query_report.get_filter_value('company'),
-				  "gst_state": frappe.query_report.get_filter_value('gst_state'),
-				  "company_gstin": frappe.query_report.get_filter_value('company_gstin'),
-				  "based_on": frappe.query_report.get_filter_value('based_on'),
-				  "from_date": frappe.query_report.get_filter_value('from_date'),
-				  "to_date": frappe.query_report.get_filter_value('to_date'),
-				  "return_period": frappe.query_report.get_filter_value('return_period'),
-				  "transaction_type" :frappe.query_report.get_filter_value('transaction_type')
-				};
-			  
-				frappe.route_options["supplier"] = data.supplier
-				frappe.route_options["view_type"] = 'Document View'
-			  
-				frappe.set_route("query-report", "CR GSTR 2B vs PR GSTIN Matching Tool")
-		}
+		await window.open(`#query-report/CR GSTR 2B vs PR GSTIN Matching Tool?view_type=Document View&
+		supplier=${data.supplier}&
+		company=${frappe.query_report.get_filter_value('company')}&
+		gst_state=${frappe.query_report.get_filter_value('gst_state')}&
+		company_gstin=${frappe.query_report.get_filter_value('company_gstin')}&
+		based_on=${frappe.query_report.get_filter_value('based_on')}&
+		from_date=${frappe.query_report.get_filter_value('from_date')}&
+		to_date=${frappe.query_report.get_filter_value('to_date')}&
+		return_period=${return_period}&
+		transaction_type=${frappe.query_report.get_filter_value('transaction_type')}`)
 	},
 	after_datatable_render: table_instance => {
 		let data = table_instance.datamanager.data;
@@ -637,3 +630,11 @@ var get_unlinked_pr_list = function(gstr2b, from_date, to_date) {
 			return
 		}
 	})};
+	var get_return_period = function(query_params) {
+		frappe.db.get_value("Prepared Report", query_params.prepared_report_name, "filters", (r) => {
+			if (r && r.filters)
+			{
+				return JSON.parse(r.filters)["return_period"];
+			}
+		})
+	}
