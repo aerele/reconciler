@@ -370,7 +370,7 @@ def get_selection_details(gstr2b, purchase_inv):
 						tax_wise_details['total_tax_amount']]
 		for tax_amt_type in tax_wise_details:
 			if not tax_amt_type == 'total_tax_amount':
-				pi_details.append(tax_wise_details[tax_amt_type])
+				pi_details.append(round(tax_wise_details[tax_amt_type], 2))
 
 		tax_details['PR'] = pi_details
 
