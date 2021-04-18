@@ -394,9 +394,9 @@ def get_tax_details(doc_name):
 		tax_amt = 0
 		if gst_accounts[account_head_fields[idx]][-1]  and not type(gst_accounts[account_head_fields[idx]][-1]) == str:
 			tax_amt = gst_accounts[account_head_fields[idx]][-1]
-		tax_details[list(tax_details.keys())[idx]] = tax_amt
+		tax_details[list(tax_details.keys())[idx]] = round(tax_amt, 2)
 		tax_amount.append(tax_amt)
-	tax_details['total_tax_amount'] = sum(tax_amount)
+	tax_details['total_tax_amount'] = round(sum(tax_amount), 2)
 	return tax_details
 
 def last_day_of_month(year, month):
