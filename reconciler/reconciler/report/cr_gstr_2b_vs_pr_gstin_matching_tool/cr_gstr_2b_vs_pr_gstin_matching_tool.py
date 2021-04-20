@@ -397,6 +397,7 @@ def update_status(data, status):
 	if isinstance(data, string_types):
 		data = json.loads(data)
 	forbidden_doc_list = []
+	ineligible_doc_list = []
 	allow_user = True
 	user = frappe.session.user
 	is_enabled = frappe.db.get_value('CD GSTR 2B Settings', None, 'enable_account_freezing')
@@ -417,6 +418,10 @@ def update_status(data, status):
 				if getdate(doc.cf_document_date) <= getdate(acc_settings[0][0]):
 					forbidden_doc_list.append(comma_and("""<a href="#Form/CD GSTR 2B Entry/{0}">{1}</a>""".format(row['gstr_2b'], row['gstr_2b'])))
 					continue
+			if status == 'Accepted' and doc.cf_purchase_invoice and \
+			round(abs(doc.cf_tax_amount - get_tax_details(doc.cf_purchase_invoice)['total_tax_amount']), 2) > 10:
+				ineligible_doc_list.append(comma_and("""<a href="#Form/CD GSTR 2B Entry/{0}">{1}</a>""".format(row['gstr_2b'], row['gstr_2b'])))
+				continue
 
 			doc.cf_status = status
 			doc.save(ignore_permissions = True)
@@ -425,6 +430,9 @@ def update_status(data, status):
 	if forbidden_doc_list:
 		forbidden_docs = ','.join(forbidden_doc_list)
 		frappe.throw(_(f"You are not authorized to update entries {forbidden_docs}"))
+	if ineligible_doc_list:
+		ineligible_docs = ','.join(ineligible_doc_list)
+		frappe.throw(_(f"Tax difference exceeded Rs.10. Unable to accept these documents {ineligible_docs}."))
 
 @frappe.whitelist()
 def get_unlinked_pr_list(doctype, txt, searchfield, start, page_len, filters):
