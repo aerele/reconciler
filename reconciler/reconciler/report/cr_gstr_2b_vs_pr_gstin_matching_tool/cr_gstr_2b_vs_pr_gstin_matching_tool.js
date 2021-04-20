@@ -233,27 +233,62 @@ frappe.query_reports["CR GSTR 2B vs PR GSTIN Matching Tool"] = {
 				});
 			}
 		})
+
+
+		// fetch Return Period
+		frappe.call({
+			method : 'reconciler.reconciler.report.cr_gstr_2b_vs_pr_gstin_matching_tool.cr_gstr_2b_vs_pr_gstin_matching_tool.return_period_query',
+			freeze : true,
+			callback: function(r) {
+				if(r.message) {
+					let return_periods = r.message
+					let options = []
+					for(let option of return_periods){
+						options.push({
+							"value":option,
+							"description":""
+						})
+					}
+					var return_period = frappe.query_report.get_filter('return_period');
+					return_period.df.options = options;
+					return_period.refresh();
+				}
+			}
+		});
 	},
 	"formatter": function(value, row, column, data, default_formatter) {
 		if (column.fieldname=="supplier") {
 			value = data.supplier;
 	
 			column.link_onclick =
-				"frappe.query_reports['CR GSTR 2B vs PR GSTIN Matching Tool'].apply_filters(" + JSON.stringify(data) + ")";
+				"frappe.query_reports['CR GSTR 2B vs PR GSTIN Matching Tool'].apply_filters(" + JSON.stringify(data) + ", 'supplier')";
+		}
+		if (column.fieldname=="gstin") {
+			value = data.gstin;
+	
+			column.link_onclick =
+				"frappe.query_reports['CR GSTR 2B vs PR GSTIN Matching Tool'].apply_filters(" + JSON.stringify(data) + ", 'gstin')";
 		}
 	
 		value = default_formatter(value, row, column, data);
 		return value;
 	},
-	"apply_filters": async function(data) {
+	"apply_filters": async function(data, filter_type) {
 		var return_period = frappe.query_report.get_filter_value('return_period');
 		const query_string = frappe.utils.get_query_string(frappe.get_route_str());
 		const query_params = frappe.utils.get_query_params(query_string);
 	if (!return_period && query_params.prepared_report_name){
 			return_period = await get_return_period(query_params);
 		}
-		if (!data.supplier) return;
+		if (!data.supplier && !data.gstin) return;
+		if (filter_type === 'gstin'){
+			data.supplier = null;
+		}
+		else if(filter_type === 'supplier'){
+			data.gstin = '';
+		}
 		await window.open(`#query-report/CR GSTR 2B vs PR GSTIN Matching Tool?view_type=Document View&
+		supplier_gstin=${data.gstin}&
 		supplier=${data.supplier}&
 		company=${frappe.query_report.get_filter_value('company')}&
 		gst_state=${frappe.query_report.get_filter_value('gst_state')}&

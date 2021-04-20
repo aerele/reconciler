@@ -26,7 +26,8 @@ class MatchingTool(object):
 			self.columns = [{
 					"label": "GSTIN",
 					"fieldname": "gstin",
-					"fieldtype": "Data",
+					"fieldtype": "Link",
+					"options": "Supplier",
 					"width": 140
 				},
 				{
@@ -37,7 +38,7 @@ class MatchingTool(object):
 					"width": 200
 				},
 				{
-					"label": "Tax Difference",
+					"label": "Tax Diff",
 					"fieldname": "tax_difference",
 					"fieldtype": "Float",
 					"width": 100
@@ -55,10 +56,10 @@ class MatchingTool(object):
 					"width": 80
 				},
 				{
-					"label": "Total Pending Documents",
+					"label": "Total Pending Entries",
 					"fieldname": "total_pending_documents",
 					"fieldtype": "Int",
-					"width": 100
+					"width": 150
 				}
 				]
 		else:
@@ -143,7 +144,6 @@ class MatchingTool(object):
 				data.append(row)
 
 		else:
-			suppliers = [row['name'] for row in frappe.db.get_all('Supplier') if row]
 			match_status = ["Exact Match", "Partial Match", "Probable Match", "Mismatch", "Missing in PR", "Missing in 2B"]
 			document_status = ['Pending', 'Accepted']
 			
@@ -163,10 +163,10 @@ class MatchingTool(object):
 
 			if 'transaction_type' in self.filters:
 				gstr2b_conditions.append(['cf_transaction_type' ,'=', self.filters['transaction_type']])
-			if suppliers and not 'supplier_gstin' in self.filters:
+			if 'supplier' in self.filters and not 'supplier_gstin' in self.filters:
 				gstr2b_conditions.append(['cf_party', 'in', suppliers])
 
-			if len(suppliers) >1 and not 'supplier_gstin' in self.filters:
+			if not 'supplier' in self.filters and not 'supplier_gstin' in self.filters:
 				self.columns +=[{
 					"label": "Supplier",
 					"fieldname": "supplier",
@@ -177,7 +177,8 @@ class MatchingTool(object):
 				{
 					"label": "GSTIN",
 					"fieldname": "gstin",
-					"fieldtype": "Data",
+					"fieldtype": "Link",
+					"options": "Supplier",
 					"width": 140
 				}]
 
@@ -185,46 +186,46 @@ class MatchingTool(object):
 				gstr2b_conditions.append(['cf_party_gstin', '=', self.filters['supplier_gstin']])
 
 			self.columns += [{
-					"label": "2B Invoice No",
+					"label": "2B Inv No",
 					"fieldname": "2b_invoice_no",
 					"fieldtype": "Data",
 					"width": 150
 				},
 				{
-					"label": "PR Invoice No",
+					"label": "PR Inv No",
 					"fieldname": "pr_invoice_no",
 					"fieldtype": "Data",
-					"width": 80
+					"width": 100
 				},
 				{
-					"label": "2B Invoice Date",
+					"label": "2B Inv Date",
 					"fieldname": "2b_invoice_date",
 					"fieldtype": "Data",
-					"width": 75
+					"width": 90
 				},
 				{
-					"label": "PR Invoice Date",
+					"label": "PR Inv Date",
 					"fieldname": "pr_invoice_date",
 					"fieldtype": "Data",
-					"width": 75
+					"width": 90
 				},
 				{
-					"label": "2B Taxable Value",
+					"label": "2B Taxable Amt",
 					"fieldname": "2b_taxable_value",
 					"fieldtype": "Float",
-					"width": 100
+					"width": 110
 				},
 				{
-					"label": "PR Taxable Value",
+					"label": "PR Taxable Amt",
 					"fieldname": "pr_taxable_value",
 					"fieldtype": "Float",
-					"width": 100
+					"width": 110
 				},
 				{
-					"label": "Tax Difference",
+					"label": "Tax Diff",
 					"fieldname": "tax_difference",
 					"fieldtype": "Float",
-					"width": 100
+					"width": 70
 				},
 				{
 					"label": "Match Status",
@@ -236,7 +237,7 @@ class MatchingTool(object):
 					"label": "Reason",
 					"fieldname": "reason",
 					"fieldtype": "Data",
-					"width": 100
+					"width": 150
 				},
 				{
 					"label": "Status",
@@ -291,7 +292,7 @@ class MatchingTool(object):
 					['docstatus' ,'=', 1],
 					['company_gstin', '=', self.filters['company_gstin']]])
 
-					if suppliers and not 'supplier_gstin' in self.filters:
+					if 'supplier' in self.filters and not 'supplier_gstin' in self.filters:
 						pr_conditions.append(['supplier' ,'in', suppliers])
 					
 					if 'supplier_gstin' in self.filters:
