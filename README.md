@@ -14,6 +14,7 @@ bench --site [site-name] install-app reconciler
 ```
 
 ## Features
+  **Initial implementation is done only for B2B Transactions.
   ### JSON Upload Tool
   
   1. Select appropriate fields and upload GSTR-2B JSON file which is downloaded from [GST portal](https://www.gst.gov.in/).
