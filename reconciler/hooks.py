@@ -93,7 +93,7 @@ app_license = "MIT"
 
 doc_events = {
 	"Purchase Invoice":{
-		"before_cancel": "reconciler.reconciler.doctype.cd_gstr_2b_entry.cd_gstr_2b_entry.get_linked_2b"
+		"on_cancel": "reconciler.reconciler.doctype.cd_gstr_2b_entry.cd_gstr_2b_entry.get_linked_2b"
 	}
 }
 
