@@ -353,9 +353,9 @@ def link_documents(uploaded_doc_name):
 def get_pr_list(company_gstin, from_date, to_date, supplier_gstin = None):
 	pr_list = []
 	filters = [['company_gstin' ,'=',company_gstin],
-				['posting_date' ,'>=',from_date],
+				['bill_date' ,'>=',from_date],
 				['docstatus', '=', 1],
-				['posting_date' ,'<=',to_date]]
+				['bill_date' ,'<=',to_date]]
 	if supplier_gstin:
 		filters.append(['supplier_gstin' ,'=',supplier_gstin])
 	
@@ -541,23 +541,9 @@ def update_match_status(gstr2b_doc, match_result):
 	doc.reload()
 
 def apply_approximation(gstr2b_invoice_no, pr_invoice_no):
-	if '-' in gstr2b_invoice_no and not '-' in pr_invoice_no:
-		if gstr2b_invoice_no.strip('-') == pr_invoice_no:
-			return True
-	if '/' in gstr2b_invoice_no and not '/' in pr_invoice_no:
-		if gstr2b_invoice_no.strip('/') == pr_invoice_no:
-			return True
-	if gstr2b_invoice_no.strip('0') == pr_invoice_no:
-		return True
-	if pr_invoice_no.isnumeric() and gstr2b_invoice_no.isalnum():
-		current_gstr2b_invoice_no = re.sub('\D', '', gstr2b_invoice_no)
-		if pr_invoice_no.replace(' ','') == current_gstr2b_invoice_no:
-			return True
-		if current_gstr2b_invoice_no.strip('0') == pr_invoice_no.replace(' ',''):
-			return True
-	if pr_invoice_no in gstr2b_invoice_no:
-		return True
-	return False
+	gstr2b_invoice_no = re.sub('[^0-9]','', gstr2b_invoice_no)
+	pr_invoice_no = re.sub('[^0-9]','', pr_invoice_no)
+	return True if pr_invoice_no in gstr2b_invoice_no else False
 
 @frappe.whitelist()
 def rematch_results(uploaded_doc_name):

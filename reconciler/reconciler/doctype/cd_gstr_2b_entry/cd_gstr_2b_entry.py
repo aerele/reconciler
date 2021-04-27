@@ -45,7 +45,7 @@ def unlink_pr(doc_name):
 			frappe.throw(_("You are not authorized to update entries before {0}").format(formatdate(acc_settings[0][0])))
 			return
 
-	doc.cf_match_status = None
+	doc.cf_match_status = 'Missing in PR'
 	doc.cf_reason = None
 	doc.cf_status = 'Pending'
 	doc.cf_purchase_invoice = None
@@ -116,7 +116,7 @@ def get_linked_2b(doc, action):
 		frappe.throw(_(f'This document is linked to {comma_and("""<a href="#Form/CD GSTR 2B Entry/{0}">{1}</a>""".format(is_linked_and_accepted, is_linked_and_accepted))}. Kindly unlink the document and proceed.'))
 	if is_linked_and_pending:
 		doc = frappe.get_doc('CD GSTR 2B Entry', is_linked_and_pending)
-		doc.cf_match_status = None
+		doc.cf_match_status = 'Missing in PR'
 		doc.cf_reason = None
 		doc.cf_purchase_invoice = None
 		doc.save(ignore_permissions=True)
