@@ -135,12 +135,17 @@ class MatchingTool(object):
 						gstin_wise_data[entry['supplier_gstin']][2] += get_tax_details(entry['name'])['total_tax_amount']
 
 			for key in gstin_wise_data.keys():
+				total_2b = len([entry for entry in gstr2b_entries if entry['cf_party_gstin'] == key])
+				total_pr = len([entry for entry in pr_entries if entry['supplier_gstin'] == key])
+				total_pending = len([entry for entry in gstr2b_entries if entry['cf_party_gstin'] == key and entry['cf_status'] == 'Pending'])
+				if total_pr > total_2b:
+					total_pending += total_pr - total_2b
 				row = {	'supplier': gstin_wise_data[key][0],
 						'gstin': key, 
 						'tax_difference': round(abs(gstin_wise_data[key][1]- gstin_wise_data[key][2]), 2),
-						'total_2b': len([entry for entry in gstr2b_entries if entry['cf_party_gstin'] == key]),
-						'total_pr': len([entry for entry in pr_entries if entry['supplier_gstin'] == key]),
-						'total_pending_documents': len([entry for entry in gstr2b_entries if entry['cf_party_gstin'] == key and entry['cf_status'] == 'Pending'])}
+						'total_2b': total_2b,
+						'total_pr': total_pr,
+						'total_pending_documents': total_pending}
 				data.append(row)
 
 		else:
