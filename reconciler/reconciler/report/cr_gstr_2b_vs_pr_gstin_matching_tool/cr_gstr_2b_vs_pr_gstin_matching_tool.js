@@ -178,7 +178,6 @@ frappe.query_reports["CR GSTR 2B vs PR GSTIN Matching Tool"] = {
 		});
 	},
 	onload: function(query_report) {
-		query_report.page.clear_menu();
 		query_report.page.add_action_item(__("⌛Pending"), () => {
 			if(frappe.query_report.get_filter_value('view_type') == 'Supplier View'){
 				frappe.throw(__('This action is allowed only for the document view type'));
