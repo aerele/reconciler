@@ -8,6 +8,7 @@ from frappe.utils import comma_and, add_months, getdate
 from six import string_types
 from reconciler.reconciler.doctype.cd_gstr_2b_data_upload_tool.cd_gstr_2b_data_upload_tool import *
 from frappe.utils.user import get_users_with_role
+from six import string_types
 
 def execute(filters=None):
 	return MatchingTool(filters).run()
@@ -399,6 +400,45 @@ def get_selection_details(gstr2b, purchase_inv):
 			 tax_details, main_details, other_details]
 
 @frappe.whitelist()
+def get_link_view_details(gstr2b, pr_list):
+	if isinstance(pr_list, string_types):
+		pr_list = json.loads(pr_list)
+	tax_details = {}
+	other_details = {}
+	main_details = {}
+	pr_details = {}
+	gstr2b_doc = frappe.get_doc('CD GSTR 2B Entry', gstr2b)
+	tax_details['GSTR-2B'] = [gstr2b_doc.cf_taxable_amount,
+						gstr2b_doc.cf_tax_amount,
+						gstr2b_doc.cf_igst_amount,
+						gstr2b_doc.cf_cgst_amount,
+						gstr2b_doc.cf_sgst_amount,
+						gstr2b_doc.cf_cess_amount]
+	
+	other_details['GSTR-2B'] = [
+						gstr2b_doc.cf_document_number,
+						gstr2b_doc.cf_document_date,
+						gstr2b_doc.cf_place_of_supply,
+						gstr2b_doc.cf_reverse_charge,
+						gstr2b_doc.cf_return_period]
+
+	main_details['GSTR-2B'] = [
+						gstr2b_doc.cf_party,
+						gstr2b_doc.cf_party_gstin,
+						gstr2b_doc.cf_transaction_type,
+						gstr2b_doc.cf_match_status,
+						gstr2b_doc.cf_status]
+	for pr in pr_list:
+		pr_doc = frappe.get_doc('Purchase Invoice', pr)
+		tax_wise_details = get_tax_details(pr)
+
+		pr_details[pr] = [frappe.bold(comma_and("""<a href="#Form/Purchase Invoice/{0}">{1}</a>""".format(pr, pr))), pr_doc.bill_no, pr_doc.bill_date,
+						tax_wise_details['total_tax_amount'], pr_doc.total]
+
+	return [comma_and("""<a href="#Form/CD GSTR 2B Entry/{0}">{1}</a>""".format(gstr2b_doc.name, gstr2b_doc.name)),
+			 tax_details, main_details, other_details, pr_details]
+
+@frappe.whitelist()
 def update_status(data, status):
 	if isinstance(data, string_types):
 		data = json.loads(data)
@@ -451,7 +491,7 @@ def get_unlinked_pr_list(doctype, txt, searchfield, start, page_len, filters):
 def get_suggested_pr_list(gstr2b, from_date, to_date):
 	doc = frappe.get_doc('CD GSTR 2B Entry', gstr2b)	
 	pr_list = get_pr_list(doc.cf_company_gstin, from_date, to_date, supplier_gstin = doc.cf_party_gstin)
-	pr_list = [{'pr': comma_and("""<a href="#Form/Purchase Invoice/{0}">{1}</a>""".format(entry['name'], entry['name']))} for entry in pr_list if entry]
+	pr_list = [entry['name'] for entry in pr_list if entry]
 	return pr_list
 
 @frappe.whitelist()

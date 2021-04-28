@@ -178,7 +178,6 @@ frappe.query_reports["CR GSTR 2B vs PR GSTIN Matching Tool"] = {
 		});
 	},
 	onload: function(query_report) {
-		query_report.page.clear_menu();
 		query_report.page.add_action_item(__("⌛Pending"), () => {
 			if(frappe.query_report.get_filter_value('view_type') == 'Supplier View'){
 				frappe.throw(__('This action is allowed only for the document view type'));
@@ -448,6 +447,131 @@ frappe.query_reports["CR GSTR 2B vs PR GSTIN Matching Tool"] = {
 	
 		dialog.get_field('preview_html').html(html);
 	}
+	var render_link_view = function(render_details, dialog) {
+		let gstr2b = render_details[0];
+		let tax_details = render_details[1];
+		let main_details = render_details[2];
+		let other_details = render_details[3];
+		let pr_details = render_details[4];
+		let link_details = `
+			<div>
+			<h3 style="text-align:left;float:left;">${gstr2b}</h3> 
+			</div>
+			`
+		let pr_header = `
+		<div>
+		<h3 style="text-align:left;float:left;">Suggested PR Details</h3> 
+		</div>
+		`
+		let tax_details_summary = () => {
+			let summary = ``
+			$.each(tax_details, function(i, d) {
+				for (let key in d) {
+					summary+=`
+						<td>${d[key]}</td>`
+				}
+				summary+=`</tr>`
+			});
+			return `
+				<div>
+				${link_details}
+					<table class="table table-bordered">
+						<tr>
+							<th width="10%">${__('Taxable Value')}</th>
+							<th width="10%">${__('Tax Value')}</th>
+							<th width="10%">${__('IGST')}</th>
+							<th width="10%">${__('CGST')}</th>
+							<th width="10%">${__('SGST')}</th>
+							<th width="10%">${__('CESS')}</th>
+						</tr>
+						${summary}
+					</table>
+				</div>
+			`;
+		}
+	
+		let other_details_summary = () => {
+			let summary = ``
+			$.each(other_details, function(i, d) {
+				for (let key in d) {
+					summary+=`
+						<td>${d[key]}</td>`
+				}
+				summary+=`</tr>`
+			});
+			return `
+				<div>
+					<table class="table table-bordered">
+						<tr>
+							<th width="10%">${__('Doc No')}</th>
+							<th width="10%">${__('Date')}</th>
+							<th width="10%">${__('POS')}</th>
+							<th width="10%">${__('Reverse Charge')}</th>
+							<th width="10%">${__('Return Period')}</th>
+						</tr>
+						${summary}
+					</table>
+				</div>
+			`;
+		}
+
+		let main_details_summary = () => {
+			let summary = ``
+			$.each(main_details, function(i, d) {
+				for (let key in d) {
+					summary+=`
+						<td>${d[key]}</td>`
+				}
+				summary+=`</tr>`
+			});
+			return `
+				<div>
+					<table class="table table-bordered">
+						<tr>
+							<th width="20%">${__('Supplier')}</th>
+							<th width="20%">${__('GSTIN')}</th>
+							<th width="10%">${__('Document Type')}</th>
+							<th width="10%">${__('Match Status')}</th>
+							<th width="10%">${__('Docstatus')}</th>
+						</tr>
+						${summary}
+					</table>
+				</div>
+			`;
+		}
+		let pr_details_summary = () => {
+			let summary = ``
+			$.each(pr_details, function(i, d) {
+				for (let key in d) {
+					summary+=`
+						<td>${d[key]}</td>`
+				}
+				summary+=`</tr>`
+			});
+			return `
+				<div>
+				${pr_header}
+					<table class="table table-bordered">
+						<tr>
+							<th width="20%">${__('PR')}</th>
+							<th width="20%">${__('Doc No')}</th>
+							<th width="10%">${__('Date')}</th>
+							<th width="10%">${__('Tax Value')}</th>
+							<th width="10%">${__('Taxable Value')}</th>
+						</tr>
+						${summary}
+					</table>
+				</div>
+			`;
+		}
+		let html = `
+			${tax_details_summary()}
+			${main_details_summary()}
+			${other_details_summary()}
+			${pr_details_summary()}
+		`;
+		dialog.get_field('preview_html').html(html);
+	}
 	var render_summary= function(gstr2b, purchase_inv) {
 		var dialog = new frappe.ui.Dialog({
 			title: __("Selection Summary"),
@@ -608,20 +732,13 @@ var get_unlinked_pr_list = function(gstr2b, from_date, to_date) {
 		from_date: from_date,
 		to_date: to_date
 	}).then(r => {
-		if(r.message){
+		if(!$.isEmptyObject(r.message)){
 			var dialog = new frappe.ui.Dialog({
 				fields: [
-					{fieldname: 'pr_list', fieldtype: 'Table', label: __('Suggested PR(s)'),data: pr_list,
-					 cannot_add_rows: true,
-						fields: [
-							{
-								fieldtype:'Read Only',
-								fieldname:'pr',
-								label: __('PR'),
-								in_list_view:1,
-								read_only:1
-							}
-						]
+					{
+						"label": "Preview",
+						"fieldname": "preview_html",
+						"fieldtype": "HTML"
 					},
 					{
 						label: __('Purchase Invoice'),
@@ -653,12 +770,16 @@ var get_unlinked_pr_list = function(gstr2b, from_date, to_date) {
 				},
 				primary_action_label: __('Link'),
 			});
-			r.message.forEach(d => {
-					pr_list.push(d);
-				});
-			dialog.fields_dict.pr_list.grid.refresh();
-			$(dialog.wrapper.find('.modal-body')).show();
+			frappe.call('reconciler.reconciler.report.cr_gstr_2b_vs_pr_gstin_matching_tool.cr_gstr_2b_vs_pr_gstin_matching_tool.get_link_view_details', {
+				gstr2b: gstr2b,
+				pr_list: r.message,
+				freeze: true
+			}).then(r => {
+				this.render_link_view(r.message, dialog);
+			});
+			dialog.get_field('preview_html').html('Loading...');
 			dialog.show();
+			dialog.$wrapper.find('.modal-dialog').css("width", "800px");
 			}
 		else{
 			frappe.throw(__("No PR found"));
