@@ -7,7 +7,7 @@ import frappe
 from frappe import  _
 from frappe.model.document import Document
 from frappe.utils import add_months, comma_and, getdate, formatdate
-from erpnext.regional.india.utils import get_gst_accounts
+
 from reconciler.reconciler.doctype.cd_gstr_2b_data_upload_tool.cd_gstr_2b_data_upload_tool import *
 from frappe.utils.user import get_users_with_role
 

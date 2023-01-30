@@ -11,7 +11,7 @@ from frappe.utils.background_jobs import enqueue
 from datetime import datetime
 from erpnext.accounts.utils import get_fiscal_year
 from frappe.utils import comma_and, add_months
-from erpnext.regional.india.utils import get_gst_accounts
+from india_compliance.patches.post_install.update_itc_amounts import get_gst_accounts
 import re
 from operator import itemgetter
 
