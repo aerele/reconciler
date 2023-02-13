@@ -60,6 +60,7 @@ bench --site [site-name] install-app reconciler
 
 1. [Frappe](https://github.com/frappe/frappe)
 2. [ERPNext](https://github.com/frappe/erpnext)
+3. [India Compliance (Additional dependencies - V14: Reconciller)](https://github.com/resilient-tech/india-compliance)
 
 ## TODO
 1. [Next Iteration Fixes](https://github.com/aerele/reconciler/issues/5)
