@@ -7,12 +7,16 @@ Navigate to your bench folder
 ```
 cd frappe-bench
 ```
-Install Reconciler App
+Install Reconciler App For Frappe Version 12 and 13 
 ```
-bench get-app reconciler https://github.com/aerele/reconciler.git
+bench get-app reconciler https://github.com/aerele/reconciler.git --branch=master
 bench --site [site-name] install-app reconciler
 ```
-
+Install Reconciler App For Frappe Version 14
+```
+bench get-app reconciler https://github.com/aerele/reconciler.git --branch=version-14
+bench --site [site-name] install-app reconciler
+```
 ## Features
   **Initial implementation is done only for B2B Transactions.
   ### JSON Upload Tool
