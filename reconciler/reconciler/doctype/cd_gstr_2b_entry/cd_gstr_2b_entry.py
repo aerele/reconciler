@@ -7,6 +7,8 @@ import frappe
 from frappe import  _
 from frappe.model.document import Document
 from frappe.utils import add_months, comma_and, getdate, formatdate
+from frappe.utils.background_jobs import enqueue
+
 
 from reconciler.reconciler.doctype.cd_gstr_2b_data_upload_tool.cd_gstr_2b_data_upload_tool import *
 from frappe.utils.user import get_users_with_role
@@ -55,6 +57,25 @@ def unlink_pr(doc_name):
 
 @frappe.whitelist()
 def rematch_result(doc_name):
+	enqueued_jobs = [d.get("job_name") for d in get_info()]
+	if doc_name+"-rematch" in enqueued_jobs:
+		frappe.msgprint(
+			_("Rematching entries already in progress. Please wait for sometime.")
+		)
+	else:
+		enqueue(
+			rematching_2b_entries,
+			queue = "default",
+			timeout = 6000,
+			event = 'rematching_2b_entries',
+			doc_name = doc_name,
+			job_name = doc_name+"-rematch"
+		)
+		frappe.msgprint(
+			_("Rematching entries added to the queue. Please check after sometime.")
+		)
+
+def rematching_2b_entries(doc_name):
 	match_status_priority_list = ['Exact Match','Partial Match','Probable Match',
 								'Mismatch','Missing in PR']
 	doc = frappe.get_doc('CD GSTR 2B Entry', doc_name)
