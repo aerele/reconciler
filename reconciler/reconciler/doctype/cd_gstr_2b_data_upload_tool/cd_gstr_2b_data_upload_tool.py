@@ -84,8 +84,6 @@ def create_gstr2b_entries(json_data, doc):
 		doc.cf_no_of_entries_in_json = 0
 		data['cf_company_gstin']  = json_data['data']['gstin']
 		del json_data['data']['gstin']
-		data['cf_generation_date']  = datetime.strptime(json_data['data']['gendt'] , "%d-%m-%Y").date()
-		del json_data['data']['gendt']
 		data['cf_return_period']  = json_data['data']['rtnprd']
 		del json_data['data']['rtnprd']
 		if 'b2b' in json_data['data']['docdata']:
