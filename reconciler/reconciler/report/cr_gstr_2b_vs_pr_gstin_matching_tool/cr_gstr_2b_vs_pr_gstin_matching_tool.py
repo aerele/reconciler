@@ -186,7 +186,15 @@ class MatchingTool(object):
 					"fieldtype": "Link",
 					"options": "Supplier",
 					"width": 140
-				}]
+				},
+					{
+					"label": "tax_amonut",
+					"fieldname": "tax_amonut",
+					"fieldtype": "Data",
+					"options": "Supplier",
+					"width": 140
+				}
+				]
 
 			if 'supplier_gstin' in self.filters:
 				gstr2b_conditions.append(['cf_party_gstin', '=', self.filters['supplier_gstin']])
@@ -259,7 +267,7 @@ class MatchingTool(object):
 				}]
 
 			gstr2b_entries = frappe.db.get_all('CD GSTR 2B Entry', filters= gstr2b_conditions, fields =['cf_document_number','cf_document_date', 'cf_party_gstin',
-				'cf_purchase_invoice', 'cf_match_status', 'cf_reason', 'cf_status', 'cf_tax_amount','cf_taxable_amount', 'name', 'cf_party'])
+				'cf_purchase_invoice', 'cf_match_status', 'cf_reason', 'cf_status', 'cf_tax_amount','cf_taxable_amount', 'name', 'cf_party','cf_tax_amount'])
 
 			for entry in gstr2b_entries:
 				bill_details = frappe.db.get_value("Purchase Invoice", {'name':entry['cf_purchase_invoice']}, ['bill_no', 'bill_date', 'total'])
@@ -278,6 +286,7 @@ class MatchingTool(object):
 				data.append({
 				'supplier': entry['cf_party'],
 				'gstin': entry['cf_party_gstin'],
+				"tax_amonut":entry['cf_tax_amount'],
 				'2b_invoice_no': entry['cf_document_number'],
 				'2b_invoice_date': entry['cf_document_date'],  
 				'pr_invoice_no': bill_details[0] if bill_details and bill_details[0] else None,
