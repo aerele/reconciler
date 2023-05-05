@@ -39,6 +39,18 @@ class MatchingTool(object):
 					"width": 200
 				},
 				{
+					"label": "2B Tax Amount",
+					"fieldname": "2b_tax",
+					"fieldtype": "Data",
+					"width": 150
+				},
+				{
+					"label": "PR Tax Amount",
+					"fieldname": "pr_tax",
+					"fieldtype": "Data",
+					"width": 150
+				},
+				{
 					"label": "Tax Diff",
 					"fieldname": "tax_difference",
 					"fieldtype": "Float",
@@ -61,19 +73,8 @@ class MatchingTool(object):
 					"fieldname": "total_pending_documents",
 					"fieldtype": "Int",
 					"width": 150
-				},
-				{
-					"label": "2B Tax Amount",
-					"fieldname": "2b_tax",
-					"fieldtype": "Data",
-					"width": 150
-				},
-				{
-					"label": "Pr Tax Amount",
-					"fieldname": "pr_tax",
-					"fieldtype": "Data",
-					"width": 150
 				}
+			
 				]
 		else:
 			self.columns = []
@@ -202,14 +203,14 @@ class MatchingTool(object):
 					"width": 140
 				},
 					{
-					"label": "2b Tax Amount",
+					"label": "2B Tax Amount",
 					"fieldname": "2b_tax_amount",
 					"fieldtype": "Data",
 					"options": "Supplier",
 					"width": 140
 				},
 				{
-					"label": "Pr Tax Amount",
+					"label": "PR Tax Amount",
 					"fieldname": "pr_tax_amount",
 					"fieldtype": "Data",
 					"width": 140
