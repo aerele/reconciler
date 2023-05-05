@@ -61,6 +61,18 @@ class MatchingTool(object):
 					"fieldname": "total_pending_documents",
 					"fieldtype": "Int",
 					"width": 150
+				},
+				{
+					"label": "2B Tax Amount",
+					"fieldname": "2b_tax",
+					"fieldtype": "Data",
+					"width": 150
+				},
+				{
+					"label": "Pr Tax Amount",
+					"fieldname": "pr_tax",
+					"fieldtype": "Data",
+					"width": 150
 				}
 				]
 		else:
@@ -146,7 +158,9 @@ class MatchingTool(object):
 						'tax_difference': round(abs(gstin_wise_data[key][1]- gstin_wise_data[key][2]), 2),
 						'total_2b': total_2b,
 						'total_pr': total_pr,
-						'total_pending_documents': total_pending}
+						'total_pending_documents': total_pending,
+						'2b_tax':gstin_wise_data[key][1],
+						'pr_tax':gstin_wise_data[key][2]}
 				data.append(row)
 
 		else:
@@ -188,10 +202,16 @@ class MatchingTool(object):
 					"width": 140
 				},
 					{
-					"label": "tax_amonut",
-					"fieldname": "tax_amonut",
+					"label": "2b Tax Amount",
+					"fieldname": "2b_tax_amount",
 					"fieldtype": "Data",
 					"options": "Supplier",
+					"width": 140
+				},
+				{
+					"label": "Pr Tax Amount",
+					"fieldname": "pr_tax_amount",
+					"fieldtype": "Data",
 					"width": 140
 				}
 				]
@@ -267,7 +287,7 @@ class MatchingTool(object):
 				}]
 
 			gstr2b_entries = frappe.db.get_all('CD GSTR 2B Entry', filters= gstr2b_conditions, fields =['cf_document_number','cf_document_date', 'cf_party_gstin',
-				'cf_purchase_invoice', 'cf_match_status', 'cf_reason', 'cf_status', 'cf_tax_amount','cf_taxable_amount', 'name', 'cf_party','cf_tax_amount'])
+				'cf_purchase_invoice', 'cf_match_status', 'cf_reason', 'cf_status', 'cf_tax_amount','cf_taxable_amount', 'name', 'cf_party'])
 
 			for entry in gstr2b_entries:
 				bill_details = frappe.db.get_value("Purchase Invoice", {'name':entry['cf_purchase_invoice']}, ['bill_no', 'bill_date', 'total'])
@@ -280,13 +300,13 @@ class MatchingTool(object):
 					button = f"""<div><Button class="btn btn-primary btn-xs left"  style="margin: 2px;" gstr2b = {entry["name"]} purchase_inv ={entry["cf_purchase_invoice"]} onClick='create_purchase_inv(this.getAttribute("gstr2b"), this.getAttribute("purchase_inv"))'>View</a>
 					<Button class="btn btn-primary btn-xs right" style="margin: 2px;"  gstr2b = {entry["name"]}  from_date = {from_date} to_date = {to_date} onClick='get_unlinked_pr_list(this.getAttribute("gstr2b"), this.getAttribute("from_date"), this.getAttribute("to_date"))'>Link</a>
 					</div>"""
-				tax_diff = entry['cf_tax_amount']
+				tax_diff = entry['cf_tax_amount']				
 				if entry['cf_purchase_invoice']:
-					tax_diff = round(abs(entry['cf_tax_amount']- get_tax_details(entry['cf_purchase_invoice'])['total_tax_amount']), 2)
+					tax_diff = round(abs(entry['cf_tax_amount']- get_tax_details(entry['cf_purchase_invoice'])['total_tax_amount']), 2)					
 				data.append({
 				'supplier': entry['cf_party'],
 				'gstin': entry['cf_party_gstin'],
-				"tax_amonut":entry['cf_tax_amount'],
+				"2b_tax_amount":entry['cf_tax_amount'],
 				'2b_invoice_no': entry['cf_document_number'],
 				'2b_invoice_date': entry['cf_document_date'],  
 				'pr_invoice_no': bill_details[0] if bill_details and bill_details[0] else None,
@@ -313,7 +333,7 @@ class MatchingTool(object):
 					if 'supplier_gstin' in self.filters:
 						pr_conditions.append(['supplier_gstin' ,'=', self.filters['supplier_gstin']])
 
-					pr_entries = frappe.db.get_all('Purchase Invoice', filters=pr_conditions, fields =['name', 'bill_no', 'bill_date', 'total', 'supplier_gstin', 'supplier'])
+					pr_entries = frappe.db.get_all('Purchase Invoice', filters=pr_conditions, fields =['name', 'bill_no', 'bill_date', 'total', 'supplier_gstin', 'supplier','taxes_and_charges_added'])
 
 					for inv in pr_entries:
 						is_linked = frappe.db.get_value('CD GSTR 2B Entry', {'cf_purchase_invoice': inv['name']}, 'name')
@@ -323,6 +343,7 @@ class MatchingTool(object):
 							data.append({
 								'supplier': inv['supplier'],
 								'gstin': inv['supplier_gstin'],
+								"pr_tax_amount": inv['taxes_and_charges_added'],
 								'2b_invoice_no': None,
 								'2b_invoice_date': None,  
 								'pr_invoice_no': inv['bill_no'],
