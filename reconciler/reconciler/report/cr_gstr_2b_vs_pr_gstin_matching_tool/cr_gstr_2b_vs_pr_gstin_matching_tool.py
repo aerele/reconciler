@@ -415,7 +415,7 @@ def get_selection_details(gstr2b, purchase_inv):
 							pi_doc.bill_no,
 							pi_doc.bill_date,
 							pi_doc.place_of_supply,
-							pi_doc.is_reverse_charge,
+							pi_doc.reverse_charge,
 							f'{pi_doc.posting_date.month}/{pi_doc.posting_date.year}']
 		main_details['PR'] = [
 							pi_doc.supplier,
