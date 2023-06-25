@@ -299,21 +299,20 @@ class MatchingTool(object):
 					button = f"""<div><Button class="btn btn-primary btn-xs left"  style="margin: 2px;" gstr2b = {entry["name"]} purchase_inv ={entry["cf_purchase_invoice"]} onClick='create_purchase_inv(this.getAttribute("gstr2b"), this.getAttribute("purchase_inv"))'>View</a>
 					<Button class="btn btn-primary btn-xs right" style="margin: 2px;"  gstr2b = {entry["name"]}  from_date = {from_date} to_date = {to_date} onClick='get_unlinked_pr_list(this.getAttribute("gstr2b"), this.getAttribute("from_date"), this.getAttribute("to_date"))'>Link</a>
 					</div>"""
-				pr_tax=None
-				tax_diff=None
+					tax_diff = entry['cf_tax_amount']
 				if entry['cf_purchase_invoice']:
-					tax_diff = round(abs(entry['cf_tax_amount']- get_tax_details(entry['cf_purchase_invoice'])['total_tax_amount']), 2)
-					pr_tax=get_tax_details(entry['cf_purchase_invoice'])['total_tax_amount']
+					pr_tax = get_tax_details(entry['cf_purchase_invoice'])['total_tax_amount']
+					tax_diff = round(abs(entry['cf_tax_amount']- pr_tax), 2)
 				data.append({
 				'supplier': entry['cf_party'],
 				'gstin': entry['cf_party_gstin'],
-				"2b_tax_amount":entry['cf_tax_amount'],
-				"pr_tax_amount":cint(pr_tax) if pr_tax else None,
+				"2b_tax_amount":round(entry['cf_tax_amount'],2),
+				"pr_tax_amount":pr_tax,
 				'2b_invoice_no': entry['cf_document_number'],
 				'2b_invoice_date': entry['cf_document_date'],  
 				'pr_invoice_no': bill_details[0] if bill_details and bill_details[0] else None,
 				'pr_invoice_date': bill_details[1] if bill_details and bill_details[1] else None,
-				'tax_difference':cint(tax_diff) if tax_diff else None,
+				'tax_difference': tax_diff,
 				'2b_taxable_value': entry['cf_taxable_amount'],
 				'pr_taxable_value': bill_details[2] if bill_details and bill_details[2] else None,
 				'match_status': entry['cf_match_status'], 
@@ -338,16 +337,15 @@ class MatchingTool(object):
 					pr_entries = frappe.db.get_all('Purchase Invoice', filters=pr_conditions, fields =['name', 'bill_no', 'bill_date', 'total', 'supplier_gstin', 'supplier'])
 
 					for inv in pr_entries:
-						is_linked = frappe.db.get_value('CD GSTR 2B Entry', {'cf_purchase_invoice': inv['name']}, ['name','cf_tax_amount'])
+						is_linked = frappe.db.get_value('CD GSTR 2B Entry', {'cf_purchase_invoice': inv['name']}, 'name')
 						if not is_linked:
-							pr_tax=get_tax_details(inv['name'])['total_tax_amount']
-							tax_diff = round(abs(is_linked[1]- get_tax_details(inv['name'])['total_tax_amount']), 2)
+							tax_diff = get_tax_details(inv['name'])['total_tax_amount']
 							button = f"""<Button class="btn btn-primary btn-xs center"  gstr2b = '' purchase_inv ={inv["name"]} onClick='render_summary(this.getAttribute("gstr2b"), this.getAttribute("purchase_inv"))'>View</a>"""
 							data.append({
 								'supplier': inv['supplier'],
 								'gstin': inv['supplier_gstin'],
-								"pr_tax_amount": pr_tax if pr_tax else None,
-								"2b_tax_amount": is_linked[1] if is_linked[1] else None,
+								"pr_tax_amount": tax_diff,
+								"2b_tax_amount": None,
 								'2b_invoice_no': None,
 								'2b_invoice_date': None,  
 								'pr_invoice_no': inv['bill_no'],
