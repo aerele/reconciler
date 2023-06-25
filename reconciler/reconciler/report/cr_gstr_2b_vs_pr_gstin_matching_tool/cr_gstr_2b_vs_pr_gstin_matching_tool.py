@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe, json
 from frappe import _
-from frappe.utils import comma_and, add_months, getdate
+from frappe.utils import comma_and, add_months, getdate,cint
 from six import string_types
 from reconciler.reconciler.doctype.cd_gstr_2b_data_upload_tool.cd_gstr_2b_data_upload_tool import *
 from frappe.utils.user import get_users_with_role
@@ -37,6 +37,18 @@ class MatchingTool(object):
 					"fieldtype": "Link",
 					"options": "Supplier",
 					"width": 200
+				},
+				{
+					"label": "2B Tax Amount",
+					"fieldname": "2b_tax",
+					"fieldtype": "Data",
+					"width": 150
+				},
+				{
+					"label": "PR Tax Amount",
+					"fieldname": "pr_tax",
+					"fieldtype": "Data",
+					"width": 150
 				},
 				{
 					"label": "Tax Diff",
@@ -146,7 +158,9 @@ class MatchingTool(object):
 						'tax_difference': round(abs(gstin_wise_data[key][1]- gstin_wise_data[key][2]), 2),
 						'total_2b': total_2b,
 						'total_pr': total_pr,
-						'total_pending_documents': total_pending}
+						'total_pending_documents': total_pending,
+						'2b_tax':cint(gstin_wise_data[key][1]),
+						'pr_tax':cint(gstin_wise_data[key][2])}
 				data.append(row)
 
 		else:
@@ -185,6 +199,19 @@ class MatchingTool(object):
 					"fieldname": "gstin",
 					"fieldtype": "Link",
 					"options": "Supplier",
+					"width": 140
+				},
+				{
+					"label": "2B Tax Amount",
+					"fieldname": "2b_tax_amount",
+					"fieldtype": "Data",
+					"options": "Supplier",
+					"width": 140
+				},
+				{
+					"label": "PR Tax Amount",
+					"fieldname": "pr_tax_amount",
+					"fieldtype": "Data",
 					"width": 140
 				}]
 
@@ -272,12 +299,15 @@ class MatchingTool(object):
 					button = f"""<div><Button class="btn btn-primary btn-xs left"  style="margin: 2px;" gstr2b = {entry["name"]} purchase_inv ={entry["cf_purchase_invoice"]} onClick='create_purchase_inv(this.getAttribute("gstr2b"), this.getAttribute("purchase_inv"))'>View</a>
 					<Button class="btn btn-primary btn-xs right" style="margin: 2px;"  gstr2b = {entry["name"]}  from_date = {from_date} to_date = {to_date} onClick='get_unlinked_pr_list(this.getAttribute("gstr2b"), this.getAttribute("from_date"), this.getAttribute("to_date"))'>Link</a>
 					</div>"""
-				tax_diff = entry['cf_tax_amount']
+					tax_diff = entry['cf_tax_amount']
 				if entry['cf_purchase_invoice']:
-					tax_diff = round(abs(entry['cf_tax_amount']- get_tax_details(entry['cf_purchase_invoice'])['total_tax_amount']), 2)
+					pr_tax = get_tax_details(entry['cf_purchase_invoice'])['total_tax_amount']
+					tax_diff = round(abs(entry['cf_tax_amount']- pr_tax), 2)
 				data.append({
 				'supplier': entry['cf_party'],
 				'gstin': entry['cf_party_gstin'],
+				"2b_tax_amount":round(entry['cf_tax_amount'],2),
+				"pr_tax_amount":pr_tax,
 				'2b_invoice_no': entry['cf_document_number'],
 				'2b_invoice_date': entry['cf_document_date'],  
 				'pr_invoice_no': bill_details[0] if bill_details and bill_details[0] else None,
@@ -314,6 +344,8 @@ class MatchingTool(object):
 							data.append({
 								'supplier': inv['supplier'],
 								'gstin': inv['supplier_gstin'],
+								"pr_tax_amount": tax_diff,
+								"2b_tax_amount": None,
 								'2b_invoice_no': None,
 								'2b_invoice_date': None,  
 								'pr_invoice_no': inv['bill_no'],
