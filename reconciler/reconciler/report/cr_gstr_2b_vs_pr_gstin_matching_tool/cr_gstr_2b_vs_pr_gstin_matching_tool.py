@@ -41,13 +41,13 @@ class MatchingTool(object):
 				{
 					"label": "2B Tax Amount",
 					"fieldname": "2b_tax",
-					"fieldtype": "Data",
+					"fieldtype": "Float",
 					"width": 150
 				},
 				{
 					"label": "PR Tax Amount",
 					"fieldname": "pr_tax",
-					"fieldtype": "Data",
+					"fieldtype": "Float",
 					"width": 150
 				},
 				{
@@ -186,8 +186,10 @@ class MatchingTool(object):
 			if 'supplier' in self.filters and not 'supplier_gstin' in self.filters:
 				gstr2b_conditions.append(['cf_party', 'in', suppliers])
 
-			if not 'supplier' in self.filters and not 'supplier_gstin' in self.filters:
-				self.columns +=[{
+			if 'supplier_gstin' in self.filters:
+				gstr2b_conditions.append(['cf_party_gstin', '=', self.filters['supplier_gstin']])
+
+			self.columns += [{
 					"label": "Supplier",
 					"fieldname": "supplier",
 					"fieldtype": "Link",
@@ -202,23 +204,6 @@ class MatchingTool(object):
 					"width": 140
 				},
 				{
-					"label": "2B Tax Amount",
-					"fieldname": "2b_tax_amount",
-					"fieldtype": "Data",
-					"options": "Supplier",
-					"width": 140
-				},
-				{
-					"label": "PR Tax Amount",
-					"fieldname": "pr_tax_amount",
-					"fieldtype": "Data",
-					"width": 140
-				}]
-
-			if 'supplier_gstin' in self.filters:
-				gstr2b_conditions.append(['cf_party_gstin', '=', self.filters['supplier_gstin']])
-
-			self.columns += [{
 					"label": "2B Inv No",
 					"fieldname": "2b_invoice_no",
 					"fieldtype": "Data",
@@ -253,6 +238,19 @@ class MatchingTool(object):
 					"fieldname": "pr_taxable_value",
 					"fieldtype": "Float",
 					"width": 110
+				},
+				{
+					"label": "2B Tax Amount",
+					"fieldname": "2b_tax_amount",
+					"fieldtype": "Float",
+					"options": "Supplier",
+					"width": 140
+				},
+				{
+					"label": "PR Tax Amount",
+					"fieldname": "pr_tax_amount",
+					"fieldtype": "Float",
+					"width": 140
 				},
 				{
 					"label": "Tax Diff",
@@ -300,6 +298,7 @@ class MatchingTool(object):
 					<Button class="btn btn-primary btn-xs right" style="margin: 2px;"  gstr2b = {entry["name"]}  from_date = {from_date} to_date = {to_date} onClick='get_unlinked_pr_list(this.getAttribute("gstr2b"), this.getAttribute("from_date"), this.getAttribute("to_date"))'>Link</a>
 					</div>"""
 					tax_diff = entry['cf_tax_amount']
+					pr_tax = None
 				if entry['cf_purchase_invoice']:
 					pr_tax = get_tax_details(entry['cf_purchase_invoice'])['total_tax_amount']
 					tax_diff = round(abs(entry['cf_tax_amount']- pr_tax), 2)
