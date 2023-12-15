@@ -185,7 +185,7 @@ def update_transaction_details(txn_key, txn_details, mappings, data, uploaded_do
 		"15": "Mizoram",
 		"13": "Nagaland",
 		"21": "Odisha",
-		"98": "Other Territory",
+		"97": "Other Territory",
 		"34": "Pondicherry",
 		"03": "Punjab",
 		"08": "Rajasthan",
