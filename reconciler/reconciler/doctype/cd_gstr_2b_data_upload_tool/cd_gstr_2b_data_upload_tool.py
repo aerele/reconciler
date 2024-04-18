@@ -6,12 +6,12 @@ from __future__ import unicode_literals
 import frappe
 from frappe import  _
 from frappe.model.document import Document
-from frappe.core.page.background_jobs.background_jobs import get_info
-from frappe.utils.background_jobs import enqueue
+from frappe.utils.background_jobs import enqueue, is_job_enqueued
 from datetime import datetime
 from erpnext.accounts.utils import get_fiscal_year
 from frappe.utils import comma_and, add_months
-from erpnext.regional.india.utils import get_gst_accounts
+from india_compliance.patches.post_install.update_itc_amounts import get_gst_accounts
+
 import re
 from operator import itemgetter
 
@@ -54,9 +54,9 @@ class CDGSTR2BDataUploadTool(Document):
 		self.cf_return_period = json_data['data']['rtnprd']
 
 	def after_insert(self):
-		enqueued_jobs = [d.get("job_name") for d in get_info()]
+		job_id = f"GSTR2BDUT::{self.name}"
 		json_data = frappe.get_file_json(frappe.local.site_path + self.cf_upload_gstr_2b_data)
-		if self.name in enqueued_jobs:
+		if is_job_enqueued(job_id):
 			frappe.msgprint(
 				_("Create GSTR 2B entries already in progress. Please wait for sometime.")
 			)
@@ -68,7 +68,8 @@ class CDGSTR2BDataUploadTool(Document):
 				event = 'create_gstr2b_entries',
 				json_data = json_data,
 				doc = self,
-				job_name = self.name
+				job_name = self.name,
+				job_id = job_id
 			)
 			frappe.msgprint(
 				_("Create GSTR 2B entries job added to the queue. Please check after sometime.")
@@ -373,11 +374,12 @@ def get_pr_list(company_gstin, from_date, to_date, supplier_gstin = None):
 def get_tax_details(doc_name):
 	tax_amount = []
 	tax_details = {
-	'igst_amount':0,
-	'cgst_amount':0,
-	'sgst_amount':0,
-	'cess_amount':0,
-	'total_tax_amount': 0}
+		'igst_amount':0,
+		'cgst_amount':0,
+		'sgst_amount':0,
+		'cess_amount':0,
+		'total_tax_amount': 0,
+	}
 
 	account_head_fields = ['igst_account','cgst_account','sgst_account','cess_account']
 	doc = frappe.get_doc('Purchase Invoice', doc_name)
@@ -545,9 +547,8 @@ def apply_approximation(gstr2b_invoice_no, pr_invoice_no):
 
 @frappe.whitelist()
 def rematch_results(uploaded_doc_name):
-	job_name = uploaded_doc_name + 'Rematch Results'
-	enqueued_jobs = [d.get("job_name") for d in get_info()]
-	if job_name in enqueued_jobs:
+	job_id = f"GSTR2BRR::{uploaded_doc_name} Rematch Results"
+	if is_job_enqueued(job_id):
 		frappe.msgprint(
 			_("Rematching already in progress. Please wait for sometime.")
 		)
@@ -558,7 +559,7 @@ def rematch_results(uploaded_doc_name):
 			timeout = 6000,
 			event = 'link_documents',
 			uploaded_doc_name = uploaded_doc_name,
-			job_name = job_name
+			job_id = job_id
 		)
 		frappe.msgprint(
 			_("Rematching job added to the queue. Please check after sometime.")
