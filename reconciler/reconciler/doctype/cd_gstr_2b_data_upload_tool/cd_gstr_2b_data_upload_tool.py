@@ -128,7 +128,12 @@ def update_transaction_details(txn_key, txn_details, mappings, data, uploaded_do
 		'rev': 'cf_reverse_charge',
 		'itcavl': 'cf_itc_availability',
 		'typ':'cf_invoice_type',
-		'rsn': 'cf_reason_for_itc_unavailability'
+		'rsn': 'cf_reason_for_itc_unavailability',
+		"txval": 'cf_taxable_amount',
+		"igst": 'cf_igst_amount',
+		"cgst": 'cf_cgst_amount',
+		"sgst": 'cf_sgst_amount',
+		"cess": 'cf_cess_amount'
 	}
 
 	invoice_item_field_mappings = { "rt": 'cf_tax_rate',
