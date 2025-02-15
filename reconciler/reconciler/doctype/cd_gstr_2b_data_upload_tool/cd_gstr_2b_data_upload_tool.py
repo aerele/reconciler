@@ -10,7 +10,7 @@ from frappe.core.page.background_jobs.background_jobs import get_info
 from frappe.utils.background_jobs import enqueue
 from datetime import datetime
 from erpnext.accounts.utils import get_fiscal_year
-from frappe.utils import comma_and, add_months
+from frappe.utils import comma_and, add_months, flt
 from erpnext.regional.india.utils import get_gst_accounts
 import re
 from operator import itemgetter
@@ -234,6 +234,7 @@ def update_transaction_details(txn_key, txn_details, mappings, data, uploaded_do
 						if not tax_key in ['rt', 'txval']:
 							inv_tax_amt += tax_details[tax_key]
 						setattr(new_doc, invoice_item_field_mappings[tax_key], tax_details[tax_key])
+			inv_tax_amt = flt(new_doc.cf_igst_amount) + flt(new_doc.cf_cgst_amount) + flt(new_doc.cf_sgst_amount) + flt(new_doc.cf_cess_amount)
 			setattr(new_doc, 'cf_other_fields', str(inv))
 			setattr(new_doc, 'cf_tax_amount', inv_tax_amt)
 			fiscal_year = get_fiscal_year(new_doc.cf_document_date)[0]
