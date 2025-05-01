@@ -10,7 +10,6 @@ from frappe.utils.background_jobs import enqueue, is_job_enqueued
 from datetime import datetime
 from erpnext.accounts.utils import get_fiscal_year
 from frappe.utils import comma_and, add_months
-from india_compliance.patches.post_install.update_itc_amounts import get_gst_accounts
 
 import re
 from operator import itemgetter
@@ -564,3 +563,42 @@ def rematch_results(uploaded_doc_name):
 		frappe.msgprint(
 			_("Rematching job added to the queue. Please check after sometime.")
 		)
+
+def get_gst_accounts(
+	company=None,
+	account_wise=False,
+	only_reverse_charge=0,
+	only_non_reverse_charge=0,
+):
+	filters = {}
+
+	if company:
+		filters["company"] = company
+	if only_reverse_charge:
+		filters["account_type"] = "Reverse Charge"
+	elif only_non_reverse_charge:
+		filters["account_type"] = ("!=", "Reverse Charge")
+
+	settings = frappe.get_cached_doc("GST Settings", "GST Settings")
+	gst_accounts = settings.get("gst_accounts", filters)
+	result = frappe._dict()
+	
+	GST_ACCOUNT_FIELDS = (
+		"cgst_account",
+		"sgst_account",
+		"igst_account",
+		"cess_account",
+		"cess_non_advol_account",
+	)
+
+	for row in gst_accounts:
+		for fieldname in GST_ACCOUNT_FIELDS:
+			if not (value := row.get(fieldname)):
+				continue
+
+			if not account_wise:
+				result.setdefault(fieldname, []).append(value)
+			else:
+				result[value] = fieldname
+
+	return result
